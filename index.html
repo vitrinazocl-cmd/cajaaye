@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard POS & Inventario</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Libraries -->
+    <!-- PapaParse for CSV reading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <!-- APP CONTAINER -->
+    <div id="app-container">
+
+        <!-- VIEW: HOME (Branch Selection) -->
+        <section id="view-home" class="view active">
+            <div class="home-container">
+                <img src="logo.jpg.jpeg" alt="Logo" class="logo-large">
+                <h1>Seleccione Sucursal</h1>
+                <div class="branch-buttons">
+                    <button class="btn-primary btn-large ripple" onclick="app.selectBranch('norte')">
+                        <span class="material-icons-outlined">storefront</span>
+                        Pudahuel Norte
+                    </button>
+                    <button class="btn-primary btn-large ripple" onclick="app.selectBranch('sur')">
+                        <span class="material-icons-outlined">store</span>
+                        Pudahuel Sur
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: LOGIN -->
+        <section id="view-login" class="view">
+            <div class="login-container card shadow-2">
+                <button class="btn-icon back-btn" onclick="app.goHome()">
+                    <span class="material-icons-outlined">arrow_back</span>
+                </button>
+                <div class="login-header">
+                    <img src="logo.jpg.jpeg" alt="Logo" class="logo-small">
+                    <h2 id="login-title">Ingreso</h2>
+                </div>
+                <form id="login-form" onsubmit="auth.handleLogin(event)">
+                    <div class="input-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <div id="login-error" class="error-msg"></div>
+                    <button type="submit" class="btn-primary ripple w-100">Ingresar</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- MAIN APP LAYOUT (For logged-in users) -->
+        <section id="view-main" class="view layout-app">
+            
+            <!-- Navbar -->
+            <nav class="navbar shadow-1">
+                <div class="nav-left">
+                    <button id="menu-btn" class="btn-icon hide-desktop" onclick="app.toggleSidebar()">
+                        <span class="material-icons-outlined">menu</span>
+                    </button>
+                    <img src="logo.jpg.jpeg" alt="Logo" class="logo-nav">
+                    <span id="current-branch-display" class="branch-badge">Sucursal</span>
+                </div>
+                <div class="nav-right">
+                    <span id="current-user-display" class="user-info">Usuario</span>
+                    <button class="btn-icon" onclick="auth.logout()" title="Cerrar Sesión">
+                        <span class="material-icons-outlined">logout</span>
+                    </button>
+                </div>
+            </nav>
+
+            <div class="main-body">
+                <!-- Sidebar (Only for Admin) -->
+                <aside id="sidebar" class="sidebar">
+                    <ul class="nav-links">
+                        <li id="nav-pos" class="active" onclick="app.navigate('pos')">
+                            <span class="material-icons-outlined">point_of_sale</span>
+                            Caja Registradora
+                        </li>
+                        <li id="nav-reports" class="admin-only" onclick="app.navigate('reports')">
+                            <span class="material-icons-outlined">bar_chart</span>
+                            Reportes
+                        </li>
+                        <li id="nav-inventory" class="admin-only" onclick="app.navigate('inventory')">
+                            <span class="material-icons-outlined">inventory_2</span>
+                            Inventario
+                        </li>
+                    </ul>
+                </aside>
+
+                <!-- Content Area -->
+                <main class="content-area">
+                    <!-- MODULE: POS -->
+                    <div id="module-pos" class="module active">
+                        <div class="pos-layout">
+                            <div class="pos-products card shadow-1">
+                                <h3>Productos</h3>
+                                <div class="search-bar">
+                                    <span class="material-icons-outlined">search</span>
+                                    <input type="text" id="pos-search" placeholder="Buscar producto..." onkeyup="pos.filterProducts()">
+                                </div>
+                                <div id="pos-product-list" class="product-grid">
+                                    <!-- Products injected by JS -->
+                                </div>
+                            </div>
+                            <div class="pos-cart card shadow-1">
+                                <h3>Venta Actual</h3>
+                                <div id="pos-cart-items" class="cart-items">
+                                    <!-- Cart items injected by JS -->
+                                </div>
+                                <div class="cart-summary">
+                                    <div class="summary-row total">
+                                        <span>Total:</span>
+                                        <span id="pos-total">$0</span>
+                                    </div>
+                                    <button class="btn-success ripple w-100 btn-large" onclick="pos.checkout()">
+                                        <span class="material-icons-outlined">shopping_cart_checkout</span>
+                                        Completar Venta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODULE: REPORTS -->
+                    <div id="module-reports" class="module">
+                        <div class="reports-header">
+                            <h2>Dashboard de Ventas</h2>
+                            <div class="export-controls card">
+                                <h4>Exportar a Excel</h4>
+                                <div class="date-pickers">
+                                    <div class="input-group">
+                                        <label>Desde:</label>
+                                        <input type="date" id="export-start">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Hasta:</label>
+                                        <input type="date" id="export-end">
+                                    </div>
+                                    <button class="btn-primary ripple" onclick="reports.exportToExcel()">Descargar</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-blue"><span class="material-icons-outlined">today</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Ventas Hoy</span>
+                                    <span id="stat-daily" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-green"><span class="material-icons-outlined">view_week</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Esta Semana</span>
+                                    <span id="stat-weekly" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-orange"><span class="material-icons-outlined">calendar_month</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Este Mes</span>
+                                    <span id="stat-monthly" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-purple"><span class="material-icons-outlined">calendar_today</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Este Año</span>
+                                    <span id="stat-yearly" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="recent-sales card shadow-1">
+                            <h3>Registro de Ventas</h3>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha/Hora</th>
+                                            <th>Sucursal</th>
+                                            <th>Vendedor</th>
+                                            <th>Items</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sales-table-body">
+                                        <!-- Injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODULE: INVENTORY -->
+                    <div id="module-inventory" class="module">
+                        <div class="inventory-header">
+                            <h2>Inventario de Mercadería</h2>
+                            <button class="btn-secondary ripple" onclick="inventory.loadCSV()">
+                                <span class="material-icons-outlined">refresh</span> Recargar Base de Datos
+                            </button>
+                        </div>
+                        <div class="card shadow-1">
+                            <div class="search-bar" style="margin-bottom: 1rem;">
+                                <span class="material-icons-outlined">search</span>
+                                <input type="text" id="inv-search" placeholder="Buscar en inventario..." onkeyup="inventory.filterTable()">
+                            </div>
+                            <div class="table-responsive">
+                                <table id="inventory-table" class="data-table">
+                                    <thead>
+                                        <tr id="inv-table-head">
+                                            <!-- Headers injected by JS -->
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inv-table-body">
+                                        <!-- Rows injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/inventory.js"></script>
+    <script src="js/pos.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
