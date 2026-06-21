@@ -1025,6 +1025,20 @@ const pos = {
             name.className = 'product-name';
             name.innerText = item.DESCRIPCION;
 
+            const marca = document.createElement('div');
+            marca.style.fontSize = '0.75rem';
+            marca.style.color = '#888';
+            marca.style.marginBottom = '2px';
+            marca.innerText = `Marca: ${item.MARCA || 'N/A'}`;
+
+            const stockVal = parseFloat(item['STOCK CAJA']) || 0;
+            const stock = document.createElement('div');
+            stock.style.fontSize = '0.75rem';
+            stock.style.marginBottom = '4px';
+            stock.style.fontWeight = '500';
+            stock.style.color = stockVal <= 5 ? 'red' : '#444';
+            stock.innerText = `Stock: ${Math.floor(stockVal)}`;
+
             const price = document.createElement('div');
             price.className = 'product-price';
             price.innerText = `$${item.PRICE_NUM.toLocaleString('es-CL')}`;
@@ -1032,6 +1046,8 @@ const pos = {
             card.appendChild(img);
             card.appendChild(codigo);
             card.appendChild(name);
+            card.appendChild(marca);
+            card.appendChild(stock);
             card.appendChild(price);
             list.appendChild(card);
         });
