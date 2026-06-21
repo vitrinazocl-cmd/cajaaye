@@ -558,7 +558,7 @@ button:active {
         <!-- VIEW: HOME (Branch Selection) -->
         <section id="view-home" class="view active">
             <div class="home-container">
-                <img src="logo.jpg.jpeg" alt="Logo" class="logo-large">
+                <img src="logo.jpg" alt="Logo" class="logo-large">
                 <h1>Seleccione Sucursal</h1>
                 <div class="branch-buttons">
                     <button class="btn-primary btn-large ripple" onclick="app.selectBranch('norte')">
@@ -579,7 +579,7 @@ button:active {
                 <button class="btn-icon back-btn-absolute" onclick="app.goHome()" style="position: absolute; top: 1rem; left: 1rem;">
                     <span class="material-icons-outlined">arrow_back</span>
                 </button>
-                <img src="logo.jpg.jpeg" alt="Logo" class="logo-large" style="max-width: 150px;">
+                <img src="logo.jpg" alt="Logo" class="logo-large" style="max-width: 150px;">
                 <h1 id="menu-title">Menú Principal</h1>
                 <p style="color: #666; margin-bottom: 2rem;">Seleccione el módulo al que desea ingresar</p>
                 <div class="branch-buttons" style="flex-direction: column; width: 100%; max-width: 400px; gap: 1rem;">
@@ -606,7 +606,7 @@ button:active {
                     <span class="material-icons-outlined">arrow_back</span>
                 </button>
                 <div class="login-header">
-                    <img src="logo.jpg.jpeg" alt="Logo" class="logo-small">
+                    <img src="logo.jpg" alt="Logo" class="logo-small">
                     <h2 id="login-title">Ingreso</h2>
                 </div>
                 <form id="login-form" onsubmit="auth.handleLogin(event)">
@@ -633,7 +633,7 @@ button:active {
                     <button class="btn-icon" onclick="auth.logoutAndGoMenu()" title="Volver al Menú" style="background-color: var(--md-sys-color-primary-container);">
                         <span class="material-icons-outlined">apps</span>
                     </button>
-                    <img src="logo.jpg.jpeg" alt="Logo" class="logo-nav">
+                    <img src="logo.jpg" alt="Logo" class="logo-nav">
                     <span id="current-branch-display" class="branch-badge hide-mobile">Sucursal</span>
                 </div>
                 <div class="nav-right">
@@ -955,7 +955,7 @@ const inventory = {
         // Rows
         this.data.forEach(item => {
             const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
-            const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
+            const imgUrl = imageMap[cleanDesc] || 'logo.jpg';
             const stockVal = parseFloat(item['STOCK CAJA']) || 0;
             const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
             const tr = document.createElement('tr');
