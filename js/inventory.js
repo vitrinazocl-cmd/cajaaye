@@ -62,90 +62,59 @@ const inventory = {
     },
 
     renderTable() {
-        const list = document.getElementById('inv-product-list');
-        if (!list) return;
+        const thead = document.getElementById('inv-table-head');
+        const tbody = document.getElementById('inv-table-body');
+        
+        if (!thead || !tbody) return;
 
-        list.innerHTML = '';
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
 
         if (this.data.length === 0) return;
 
-        // Rows as Cards
+        // Headers
+        const headers = ['IMAGEN', 'CODIGO', 'DESCRIPCION', 'MARCA', 'UNIDADES POR CAJA', 'PRECIO POR CAJA', 'STOCK CAJA'];
+        headers.forEach(h => {
+            const th = document.createElement('th');
+            th.innerText = h;
+            thead.appendChild(th);
+        });
+
+        // Rows
         this.data.forEach(item => {
-            // Check descriptions flexibly
             const desc = item.DESCRIPCION || item.descripcion || item.Descripcion;
             if (!desc || desc.trim() === '') return;
 
-            const card = document.createElement('div');
-            card.className = 'product-card ripple';
-
-            const imgContainer = document.createElement('div');
-            imgContainer.className = 'product-image-container';
-            const img = document.createElement('img');
-            img.src = `stock productos/${desc}.jpg`;
-            img.onerror = function() {
-                this.onerror = null;
-                this.src = `stock productos/${desc}.webp`;
-                this.onerror = function() {
-                    this.onerror = null;
-                    this.src = `stock productos/${desc}.png`;
-                    this.onerror = function() {
-                        this.onerror = null;
-                        this.src = 'logo.jpg.jpeg';
-                    };
-                };
-            };
-            imgContainer.appendChild(img);
-
-            const code = document.createElement('div');
-            code.className = 'product-code';
-            const cod = item.CODIGO || item.codigo || '';
-            code.innerText = `Cod: ${cod}`;
-
-            const name = document.createElement('div');
-            name.className = 'product-name';
-            name.innerText = desc;
-
-            const brand = document.createElement('div');
-            brand.className = 'product-brand';
-            const mar = item.MARCA || item.marca || 'N/A';
-            brand.innerText = `Marca: ${mar}`;
-
-            const stock = document.createElement('div');
-            const stockVal = item['STOCK CAJA'] || item['stock'] || item['UNIDADES POR CAJA'] || item['unidades_por_caja'];
-            const stockQty = parseInt(stockVal) || 0;
-            stock.className = `product-stock ${stockQty <= 5 ? 'low-stock' : 'normal-stock'}`;
-            stock.innerText = `Stock: ${stockQty}`;
-
-            const price = document.createElement('div');
-            price.className = 'product-price';
+            const cleanDesc = desc.trim().toLowerCase().replace(/\s+/g, ' ');
+            const imgUrl = (typeof imageMap !== 'undefined' ? imageMap[cleanDesc] : null) || `stock productos/${desc}.jpg`;
+            const stockVal = parseFloat(item['STOCK CAJA'] || item['stock'] || item['UNIDADES POR CAJA'] || item['unidades_por_caja']) || 0;
+            const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
             const pNum = Number(item.PRICE_NUM) || Number(item.precio_caja) || 0;
-            price.innerText = `$${pNum.toLocaleString('es-CL')}`;
+            const cod = item.CODIGO || item.codigo || '';
+            const mar = item.MARCA || item.marca || 'N/A';
+            const unids = item['UNIDADES POR CAJA'] || item.unidades_por_caja || '';
 
-            card.appendChild(imgContainer);
-            card.appendChild(code);
-            card.appendChild(name);
-            card.appendChild(brand);
-            card.appendChild(stock);
-            card.appendChild(price);
-            
-            // To ensure they are always visible:
-            code.style.display = 'block';
-            name.style.display = 'block';
-            brand.style.display = 'block';
-            stock.style.display = 'block';
-            price.style.display = 'block';
-            
-            list.appendChild(card);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;" onerror="this.src='logo.jpg.jpeg'"></td>
+                <td>${cod}</td>
+                <td>${desc}</td>
+                <td>${mar}</td>
+                <td>${unids}</td>
+                <td>$${pNum.toLocaleString('es-CL')}</td>
+                <td style="${stockStyle}">${Math.floor(stockVal)}</td>
+            `;
+            tbody.appendChild(tr);
         });
     },
 
     filterTable() {
         const term = document.getElementById('inv-search').value.toLowerCase();
-        const cards = document.querySelectorAll('#inv-product-list .product-card');
+        const rows = document.querySelectorAll('#inv-table-body tr');
         
-        cards.forEach(card => {
-            const text = card.innerText.toLowerCase();
-            card.style.display = text.includes(term) ? '' : 'none';
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(term) ? '' : 'none';
         });
     }
 };

@@ -805,14 +805,12 @@ button:active {
                             </button>
                         </div>
                         <div class="card shadow-1">
-                            <div class="search-bar" style="margin-bottom: 1rem;">
-                                <span class="material-icons-outlined">search</span>
-                                <input type="text" id="inv-search" placeholder="Buscar producto en bodega..." onkeyup="inventory.filterTable()">
+                            <div class="table-responsive">
+                                <table class="data-table" id="inventory-table">
+                                    <thead id="inv-table-head"></thead>
+                                    <tbody id="inv-table-body"></tbody>
+                                </table>
                             </div>
-                            <div id="inv-product-list" class="product-grid" style="padding: 1rem; height: calc(100vh - 250px);">
-                                <!-- Products injected by JS -->
-                            </div>
-                        </div>
                     </div>
 
                 </main>
@@ -969,46 +967,59 @@ const inventory = {
 
 
     renderTable() {
-        const list = document.getElementById('inv-product-list');
-        if (!list) return;
+        const thead = document.getElementById('inv-table-head');
+        const tbody = document.getElementById('inv-table-body');
+        
+        if (!thead || !tbody) return;
 
-        list.innerHTML = '';
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
 
         if (this.data.length === 0) return;
 
+        // Headers
+        const headers = ['IMAGEN', 'CODIGO', 'DESCRIPCION', 'MARCA', 'UNIDADES POR CAJA', 'PRECIO POR CAJA', 'STOCK CAJA'];
+        headers.forEach(h => {
+            const th = document.createElement('th');
+            th.innerText = h;
+            thead.appendChild(th);
+        });
+
+        // Rows
         this.data.forEach(item => {
-            if (!item.DESCRIPCION) return;
+            const desc = item.DESCRIPCION || item.descripcion || item.Descripcion;
+            if (!desc || desc.trim() === '') return;
 
-            const card = document.createElement('div');
-            card.className = 'product-card ripple';
-
-            const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
+            const cleanDesc = desc.trim().toLowerCase().replace(/\s+/g, ' ');
             const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
-            
-            const stockVal = parseFloat(item['STOCK CAJA']) || 0;
-            const stockStyle = stockVal <= 5 ? 'color: red;' : 'color: #444;';
-            const priceStr = item.PRICE_NUM ? item.PRICE_NUM.toLocaleString('es-CL') : '0';
+            const stockVal = parseFloat(item['STOCK CAJA'] || item['stock'] || item['UNIDADES POR CAJA'] || item['unidades_por_caja']) || 0;
+            const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
+            const pNum = Number(item.PRICE_NUM) || Number(item.precio_caja) || 0;
+            const cod = item.CODIGO || item.codigo || '';
+            const mar = item.MARCA || item.marca || 'N/A';
+            const unids = item['UNIDADES POR CAJA'] || item.unidades_por_caja || '';
 
-            card.innerHTML = `
-                <img src="${imgUrl}" style="width: 100%; height: 100px; object-fit: contain; margin-bottom: 8px; border-radius: var(--md-sys-shape-small);">
-                <div style="display: block !important; visibility: visible !important; font-size: 0.85rem !important; color: #111 !important; margin-bottom: 2px !important; text-align: center !important;">Cod: ${item.CODIGO || 'S/C'}</div>
-                <div class="product-name" style="display: block !important; visibility: visible !important; font-weight: bold !important; margin-bottom: 4px !important; font-size: 0.95rem !important; line-height: 1.2 !important; color: #000 !important; text-align: center !important;">${item.DESCRIPCION || 'Sin Descripción'}</div>
-                <div style="display: block !important; visibility: visible !important; font-size: 0.85rem !important; color: #444 !important; margin-bottom: 2px !important; text-align: center !important;">Marca: ${item.MARCA || 'N/A'}</div>
-                <div style="display: block !important; visibility: visible !important; font-size: 0.85rem !important; margin-bottom: 4px !important; font-weight: bold !important; ${stockStyle} text-align: center !important;">Stock: ${Math.floor(stockVal)}</div>
-                <div class="product-price" style="display: block !important; visibility: visible !important; font-size: 1.1rem !important; color: #00897b !important; font-weight: bold !important; text-align: center !important;">$${priceStr}</div>
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></td>
+                <td>${cod}</td>
+                <td>${desc}</td>
+                <td>${mar}</td>
+                <td>${unids}</td>
+                <td>$${pNum.toLocaleString('es-CL')}</td>
+                <td style="${stockStyle}">${Math.floor(stockVal)}</td>
             `;
-            
-            list.appendChild(card);
+            tbody.appendChild(tr);
         });
     },
 
     filterTable() {
         const term = document.getElementById('inv-search').value.toLowerCase();
-        const cards = document.querySelectorAll('#inv-product-list .product-card');
+        const rows = document.querySelectorAll('#inv-table-body tr');
         
-        cards.forEach(card => {
-            const name = card.querySelector('.product-name').innerText.toLowerCase();
-            card.style.display = name.includes(term) ? '' : 'none';
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(term) ? '' : 'none';
         });
     }
 };
