@@ -969,51 +969,46 @@ const inventory = {
 
 
     renderTable() {
-        const thead = document.getElementById('inv-table-head');
-        const tbody = document.getElementById('inv-table-body');
-        
-        if (!thead || !tbody) return;
+        const list = document.getElementById('inv-product-list');
+        if (!list) return;
 
-        thead.innerHTML = '';
-        tbody.innerHTML = '';
+        list.innerHTML = '';
 
         if (this.data.length === 0) return;
 
-        // Headers
-        const headers = ['IMAGEN', 'CODIGO', 'DESCRIPCION', 'MARCA', 'UNIDADES POR CAJA', 'PRECIO POR CAJA', 'STOCK CAJA'];
-        headers.forEach(h => {
-            const th = document.createElement('th');
-            th.innerText = h;
-            thead.appendChild(th);
-        });
-
-        // Rows
         this.data.forEach(item => {
+            if (!item.DESCRIPCION) return;
+
+            const card = document.createElement('div');
+            card.className = 'product-card ripple';
+
             const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
             const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
+            
             const stockVal = parseFloat(item['STOCK CAJA']) || 0;
-            const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></td>
-                <td>${item.CODIGO}</td>
-                <td>${item.DESCRIPCION}</td>
-                <td>${item.MARCA}</td>
-                <td>${item['UNIDADES POR CAJA']}</td>
-                <td>$${item.PRICE_NUM.toLocaleString('es-CL')}</td>
-                <td style="${stockStyle}">${Math.floor(stockVal)}</td>
+            const stockStyle = stockVal <= 5 ? 'color: red;' : 'color: #444;';
+            const priceStr = item.PRICE_NUM ? item.PRICE_NUM.toLocaleString('es-CL') : '0';
+
+            card.innerHTML = `
+                <img src="${imgUrl}" style="width: 100%; height: 100px; object-fit: contain; margin-bottom: 8px; border-radius: var(--md-sys-shape-small);">
+                <div style="display: block !important; visibility: visible !important; font-size: 0.85rem !important; color: #111 !important; margin-bottom: 2px !important; text-align: center !important;">Cod: ${item.CODIGO || 'S/C'}</div>
+                <div class="product-name" style="display: block !important; visibility: visible !important; font-weight: bold !important; margin-bottom: 4px !important; font-size: 0.95rem !important; line-height: 1.2 !important; color: #000 !important; text-align: center !important;">${item.DESCRIPCION || 'Sin Descripción'}</div>
+                <div style="display: block !important; visibility: visible !important; font-size: 0.85rem !important; color: #444 !important; margin-bottom: 2px !important; text-align: center !important;">Marca: ${item.MARCA || 'N/A'}</div>
+                <div style="display: block !important; visibility: visible !important; font-size: 0.85rem !important; margin-bottom: 4px !important; font-weight: bold !important; ${stockStyle} text-align: center !important;">Stock: ${Math.floor(stockVal)}</div>
+                <div class="product-price" style="display: block !important; visibility: visible !important; font-size: 1.1rem !important; color: #00897b !important; font-weight: bold !important; text-align: center !important;">$${priceStr}</div>
             `;
-            tbody.appendChild(tr);
+            
+            list.appendChild(card);
         });
     },
 
     filterTable() {
         const term = document.getElementById('inv-search').value.toLowerCase();
-        const rows = document.querySelectorAll('#inv-table-body tr');
+        const cards = document.querySelectorAll('#inv-product-list .product-card');
         
-        rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(term) ? '' : 'none';
+        cards.forEach(card => {
+            const name = card.querySelector('.product-name').innerText.toLowerCase();
+            card.style.display = name.includes(term) ? '' : 'none';
         });
     }
 };
