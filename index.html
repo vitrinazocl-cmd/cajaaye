@@ -875,7 +875,7 @@ const inventory = {
 
     
     loadCSV() {
-        const filesToTry = ['inventario.csv', 'inventario.csv.csv', 'inventario a&e.csv', 'inventario%20a%26e.csv'];
+        const t = new Date().getTime(); const filesToTry = ['inventariobien.csv?t='+t, 'inventariobien?t='+t, 'inventario.csv?t='+t, 'inventario.csv.csv?t='+t, 'inventario a&e.csv?t='+t, 'inventario%20a%26e.csv?t='+t];
         let currentIndex = 0;
 
         const tryNextFile = () => {
