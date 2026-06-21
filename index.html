@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard POS & Logística</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+    <!-- Styles -->
+    <style>
+:root {
+    /* Material Design Tokens */
+    --md-sys-color-primary: #1976d2;
+    --md-sys-color-primary-container: #d3e3fd;
+    --md-sys-color-on-primary-container: #041e49;
+    --md-sys-color-secondary: #00897b;
+    --md-sys-color-error: #b3261e;
+    --md-sys-color-background: #f8fdff;
+    --md-sys-color-surface: #ffffff;
+    --md-sys-color-on-surface: #191c1d;
+    --md-sys-color-on-surface-variant: #40484c;
+    --md-sys-color-outline: #70787d;
+
+    /* Semantic Colors */
+    --success: #2e7d32;
+    --warning: #ed6c02;
+    --info: #0288d1;
+
+    /* Typography */
+    --font-family: 'Roboto', sans-serif;
+    
+    /* Shadows */
+    --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    
+    /* Radii */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+
+    /* Transitions */
+    --transition-standard: 0.2s ease-in-out;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-surface);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Utilities */
+.shadow-1 { box-shadow: var(--shadow-1); }
+.shadow-2 { box-shadow: var(--shadow-2); }
+.card {
+    background-color: var(--md-sys-color-surface);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+.w-100 { width: 100%; }
+.bg-blue { background-color: var(--md-sys-color-primary); color: white; }
+.bg-green { background-color: var(--success); color: white; }
+.bg-orange { background-color: var(--warning); color: white; }
+.bg-purple { background-color: #7b1fa2; color: white; }
+.error-msg { color: var(--md-sys-color-error); font-size: 0.875rem; margin-top: 0.5rem; display: none; }
+
+/* Views & Routing */
+.view {
+    display: none;
+    min-height: 100vh;
+}
+.view.active {
+    display: block;
+}
+.module {
+    display: none;
+}
+.module.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Buttons */
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-standard), transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+button:active {
+    transform: scale(0.98);
+}
+.btn-primary {
+    background-color: var(--md-sys-color-primary);
+    color: white;
+    padding: 10px 20px;
+}
+.btn-primary:hover {
+    background-color: #1565c0;
+}
+.btn-secondary {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    padding: 10px 20px;
+}
+.btn-secondary:hover {
+    background-color: #b6d0fa;
+}
+.btn-success {
+    background-color: var(--success);
+    color: white;
+    padding: 10px 20px;
+}
+.btn-success:hover {
+    background-color: #1b5e20;
+}
+.btn-large {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+    border-radius: var(--radius-md);
+}
+.btn-icon {
+    background: transparent;
+    color: inherit;
+    padding: 8px;
+    border-radius: 50%;
+}
+.btn-icon:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Ripple Effect */
+.ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Home View */
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 2rem;
+    text-align: center;
+}
+.logo-large {
+    max-width: 250px;
+    margin-bottom: 2rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+}
+.branch-buttons {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Login View */
+#view-login {
+    display: none; /* Managed by JS */
+    align-items: center;
+    justify-content: center;
+    background-color: var(--md-sys-color-primary-container);
+}
+#view-login.active {
+    display: flex;
+}
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+}
+.back-btn {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+}
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.logo-small {
+    max-width: 100px;
+    margin-bottom: 1rem;
+    border-radius: 50%;
+}
+.input-group {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+.input-group label {
+    margin-bottom: 0.5rem;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 0.9rem;
+}
+.input-group input {
+    padding: 12px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+.input-group input:focus {
+    outline: none;
+    border-color: var(--md-sys-color-primary);
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+/* App Layout */
+.layout-app {
+    display: flex;
+    flex-direction: column;
+}
+.navbar {
+    height: 64px;
+    background-color: var(--md-sys-color-surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.logo-nav {
+    height: 40px;
+    border-radius: 4px;
+}
+.branch-badge {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+.user-info {
+    font-weight: 500;
+}
+
+.main-body {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 64px);
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: var(--md-sys-color-surface);
+    border-right: 1px solid rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    z-index: 90;
+}
+.nav-links {
+    list-style: none;
+    padding: 1rem 0;
+}
+.nav-links li {
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface-variant);
+    transition: background-color 0.2s, color 0.2s;
+}
+.nav-links li:hover {
+    background-color: rgba(0,0,0,0.04);
+}
+.nav-links li.active {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    font-weight: 500;
+}
+.nav-links li.admin-only {
+    display: none; /* Shown via JS if admin */
+}
+
+/* Content Area */
+.content-area {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    background-color: var(--md-sys-color-background);
+}
+
+/* POS Module */
+.pos-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    height: 100%;
+}
+.pos-products {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+}
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #f1f3f4;
+    border-radius: var(--radius-full);
+    padding: 8px 16px;
+    margin: 1rem 0;
+}
+.search-bar input {
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 8px;
+    width: 100%;
+    font-size: 1rem;
+}
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    overflow-y: auto;
+    padding-right: 8px;
+    align-items: stretch;
+}
+.product-card {
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+.product-card:hover {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: var(--shadow-1);
+}
+.product-image-container {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.product-image-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+.product-code {
+    font-size: 0.8rem;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-bottom: 0.2rem;
+}
+.product-name {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+.product-brand {
+    font-size: 0.8rem;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-bottom: 0.2rem;
+}
+.product-stock {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.product-stock.low-stock {
+    color: var(--md-sys-color-error);
+}
+.product-stock.normal-stock {
+    color: var(--md-sys-color-on-surface-variant);
+}
+.product-price {
+    color: var(--md-sys-color-secondary);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.pos-cart {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+}
+.cart-items {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 1rem;
+}
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+.cart-item-info {
+    flex: 1;
+}
+.cart-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cart-summary {
+    border-top: 2px solid #eee;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* Reports Module */
+.reports-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.export-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
+.date-pickers {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--md-sys-color-on-surface-variant);
+}
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Tables */
+.table-responsive {
+    overflow-x: auto;
+}
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.data-table th, .data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+.data-table th {
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface-variant);
+    background-color: #fafafa;
+}
+.data-table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Inventory Module */
+.inventory-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .pos-layout {
+        grid-template-columns: 1fr;
+    }
+    .pos-products, .pos-cart {
+        height: auto;
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hide-desktop {
+        display: block;
+    }
+    .sidebar {
+        position: absolute;
+        height: calc(100vh - 64px);
+        transform: translateX(-100%);
+        box-shadow: var(--shadow-2);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    .branch-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    .branch-buttons button {
+        width: 100%;
+    }
+    .reports-header {
+        flex-direction: column;
+    }
+}
+
+@media (min-width: 769px) {
+    .hide-desktop {
+        display: none;
+    }
+}
+
+</style>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <!-- APP CONTAINER -->
+    <div id="app-container">
+
+        <!-- VIEW: HOME (Branch Selection) -->
+        <section id="view-home" class="view active">
+            <div class="home-container">
+                <img src="logo.jpg.jpeg" alt="Logo" class="logo-large">
+                <h1>Seleccione Sucursal</h1>
+                <div class="branch-buttons">
+                    <button class="btn-primary btn-large ripple" onclick="app.selectBranch('norte')">
+                        <span class="material-icons-outlined">storefront</span>
+                        Pudahuel Norte
+                    </button>
+                    <button class="btn-primary btn-large ripple" onclick="app.selectBranch('sur')">
+                        <span class="material-icons-outlined">store</span>
+                        Pudahuel Sur
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: MAIN MENU (Module Selection) -->
+        <section id="view-menu" class="view">
+            <div class="home-container">
+                <button class="btn-icon back-btn-absolute" onclick="app.goHome()" style="position: absolute; top: 1rem; left: 1rem;">
+                    <span class="material-icons-outlined">arrow_back</span>
+                </button>
+                <img src="logo.jpg.jpeg" alt="Logo" class="logo-large" style="max-width: 150px;">
+                <h1 id="menu-title">Menú Principal</h1>
+                <p style="color: #666; margin-bottom: 2rem;">Seleccione el módulo al que desea ingresar</p>
+                <div class="branch-buttons" style="flex-direction: column; width: 100%; max-width: 400px; gap: 1rem;">
+                    <button class="btn-success btn-large ripple w-100" onclick="app.selectModule('pos')">
+                        <span class="material-icons-outlined">point_of_sale</span>
+                        Caja Registradora
+                    </button>
+                    <button class="btn-primary btn-large ripple w-100" onclick="app.selectModule('ventas')">
+                        <span class="material-icons-outlined">bar_chart</span>
+                        Ventas
+                    </button>
+                    <button class="btn-secondary btn-large ripple w-100" onclick="app.selectModule('logistica')">
+                        <span class="material-icons-outlined">inventory_2</span>
+                        Logística
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: LOGIN -->
+        <section id="view-login" class="view">
+            <div class="login-container card shadow-2">
+                <button class="btn-icon back-btn" onclick="app.showView('view-menu')">
+                    <span class="material-icons-outlined">arrow_back</span>
+                </button>
+                <div class="login-header">
+                    <img src="logo.jpg.jpeg" alt="Logo" class="logo-small">
+                    <h2 id="login-title">Ingreso</h2>
+                </div>
+                <form id="login-form" onsubmit="auth.handleLogin(event)">
+                    <div class="input-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <div id="login-error" class="error-msg"></div>
+                    <button type="submit" class="btn-primary ripple w-100">Ingresar</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- MAIN APP LAYOUT (For logged-in users inside a module) -->
+        <section id="view-main" class="view layout-app">
+            
+            <!-- Navbar -->
+            <nav class="navbar shadow-1">
+                <div class="nav-left">
+                    <button class="btn-icon" onclick="auth.logoutAndGoMenu()" title="Volver al Menú" style="background-color: var(--md-sys-color-primary-container);">
+                        <span class="material-icons-outlined">apps</span>
+                    </button>
+                    <img src="logo.jpg.jpeg" alt="Logo" class="logo-nav">
+                    <span id="current-branch-display" class="branch-badge hide-mobile">Sucursal</span>
+                </div>
+                <div class="nav-right">
+                    <span id="current-user-display" class="user-info">Usuario</span>
+                    <button class="btn-icon" onclick="auth.logout()" title="Cerrar Sesión y salir">
+                        <span class="material-icons-outlined">logout</span>
+                    </button>
+                </div>
+            </nav>
+
+            <div class="main-body">
+                <!-- Content Area (No sidebar anymore) -->
+                <main class="content-area w-100" style="width: 100%;">
+                    
+                    <!-- MODULE: POS (Caja Registradora) -->
+                    <div id="module-pos" class="module">
+                        <div class="pos-layout">
+                            <div class="pos-products card shadow-1">
+                                <h3>Productos</h3>
+                                <div class="search-bar">
+                                    <span class="material-icons-outlined">search</span>
+                                    <input type="text" id="pos-search" placeholder="Buscar producto..." onkeyup="pos.filterProducts()">
+                                </div>
+                                <div id="pos-product-list" class="product-grid">
+                                    <!-- Products injected by JS -->
+                                </div>
+                            </div>
+                            <div class="pos-cart card shadow-1">
+                                <h3>Venta Actual</h3>
+                                <div id="pos-cart-items" class="cart-items">
+                                    <!-- Cart items injected by JS -->
+                                </div>
+                                <div class="cart-summary">
+                                    <div class="summary-row total">
+                                        <span>Total:</span>
+                                        <span id="pos-total">$0</span>
+                                    </div>
+                                    <button class="btn-success ripple w-100 btn-large" onclick="pos.checkout()">
+                                        <span class="material-icons-outlined">shopping_cart_checkout</span>
+                                        Completar Venta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODULE: VENTAS (Reports) -->
+                    <div id="module-ventas" class="module">
+                        <div class="reports-header">
+                            <h2>Dashboard de Ventas</h2>
+                            <div class="export-controls card">
+                                <h4>Exportar a Excel</h4>
+                                <div class="date-pickers">
+                                    <div class="input-group">
+                                        <label>Desde:</label>
+                                        <input type="date" id="export-start">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Hasta:</label>
+                                        <input type="date" id="export-end">
+                                    </div>
+                                    <button class="btn-primary ripple" onclick="reports.exportToExcel()">Descargar</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-blue"><span class="material-icons-outlined">today</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Ventas Hoy</span>
+                                    <span id="stat-daily" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-green"><span class="material-icons-outlined">view_week</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Esta Semana</span>
+                                    <span id="stat-weekly" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-orange"><span class="material-icons-outlined">calendar_month</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Este Mes</span>
+                                    <span id="stat-monthly" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-purple"><span class="material-icons-outlined">calendar_today</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Este Año</span>
+                                    <span id="stat-yearly" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="recent-sales card shadow-1">
+                            <h3>Registro de Ventas</h3>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha/Hora</th>
+                                            <th>Sucursal</th>
+                                            <th>Vendedor</th>
+                                            <th>Artículos Vendidos</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sales-table-body">
+                                        <!-- Injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODULE: LOGISTICA (Inventory) -->
+                    <div id="module-logistica" class="module">
+                        <div class="inventory-header">
+                            <h2>Logística y Mercadería</h2>
+                            <button class="btn-secondary ripple" onclick="inventory.loadCSV()">
+                                <span class="material-icons-outlined">refresh</span> Recargar Base de Datos
+                            </button>
+                        </div>
+                        <div class="card shadow-1">
+                            <div class="search-bar" style="margin-bottom: 1rem;">
+                                <span class="material-icons-outlined">search</span>
+                                <input type="text" id="inv-search" placeholder="Buscar producto en bodega..." onkeyup="inventory.filterTable()">
+                            </div>
+                            <div id="inv-product-list" class="product-grid" style="padding: 1rem; height: calc(100vh - 250px);">
+                                <!-- Products injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+// auth.js - Authentication Logic
+
+const auth = {
+    users: {
+        'distribuidora': { password: '123456', role: 'cashier' },
+        'laguna': { password: '654321', role: 'admin' }
+    },
+
+    handleLogin(event) {
+        event.preventDefault();
+        const usernameInput = document.getElementById('username').value.trim().toLowerCase();
+        const passwordInput = document.getElementById('password').value;
+        const errorMsg = document.getElementById('login-error');
+
+        const user = this.users[usernameInput];
+
+        if (user && user.password === passwordInput) {
+            
+            // Check permissions based on target module
+            const target = app.state.targetModule;
+            
+            if ((target === 'ventas' || target === 'logistica') && user.role !== 'admin') {
+                errorMsg.innerText = 'Acceso denegado. Se requiere clave de administrador.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Success
+            errorMsg.style.display = 'none';
+            app.state.user = {
+                username: usernameInput,
+                role: user.role
+            };
+            
+            // Clear forms
+            document.getElementById('login-form').reset();
+
+            // Proceed to app
+            app.showApp();
+        } else {
+            // Failed
+            errorMsg.innerText = 'Usuario o contraseña incorrectos.';
+            errorMsg.style.display = 'block';
+        }
+    },
+
+    logoutAndGoMenu() {
+        app.state.user = null;
+        
+        // Clear pos cart
+        pos.cart = [];
+        pos.renderCart();
+        
+        app.showView('view-menu');
+    },
+
+    logout() {
+        app.state.user = null;
+        app.state.branch = null;
+        app.state.targetModule = null;
+        
+        // Clear pos cart
+        pos.cart = [];
+        pos.renderCart();
+        
+        app.showView('view-home');
+    }
+};
+
+</script>
+    <script>
+// inventory.js - Inventory Management
+
+const inventory = {
+    data: [],
+
+    init() {
+        // Attempt to load from localStorage first if we already parsed it
+        const saved = localStorage.getItem('pos_inventory');
+        if (saved) {
+            this.data = JSON.parse(saved);
+            this.renderTable();
+        }
+    },
+
+    
+    loadCSV() {
+        const t = new Date().getTime(); const filesToTry = ['inventario_limpio.csv?t='+t, 'inventario_limpio?t='+t, 'inventariobien.csv?t='+t, 'inventariobien?t='+t, 'inventario.csv?t='+t, 'inventario.csv.csv?t='+t, 'inventario a&e.csv?t='+t, 'inventario%20a%26e.csv?t='+t];
+        let currentIndex = 0;
+
+        const tryNextFile = () => {
+            if (currentIndex >= filesToTry.length) {
+                console.error('No se pudo cargar el inventario.');
+                alert('Error al cargar el inventario. Asegurese de que el archivo CSV este subido a GitHub.');
+                return;
+            }
+
+            const currentFile = filesToTry[currentIndex];
+            Papa.parse(currentFile, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    this.data = results.data.map(row => {
+                        const cleanRow = {};
+                        for (let key in row) {
+                            cleanRow[key.trim().toLowerCase()] = row[key].trim();
+                        }
+                        
+                        const item = {
+                            CODIGO: cleanRow['codigo'] || '',
+                            DESCRIPCION: cleanRow['descripcion'] || '',
+                            MARCA: cleanRow['marca'] || '',
+                            CONTENIDO: cleanRow['contenido'] || '',
+                            'UNIDADES POR CAJA': cleanRow['unidades_por_caja'] || cleanRow['unidades por caja'] || '',
+                            'PRECIO POR CAJA': cleanRow['precio_caja'] || cleanRow['precio por caja'] || '',
+                            'STOCK CAJA': cleanRow['stock'] || cleanRow['stock caja'] || '',
+                            AROMAS: cleanRow['aromas'] || ''
+                        };
+
+                        if (!item['CODIGO']) item['CODIGO'] = 'GEN-' + Math.random().toString(36).substr(2, 9);
+                        if (item['PRECIO POR CAJA']) {
+                            let priceStr = item['PRECIO POR CAJA'].replace('$', '').replace(/\./g, '').trim();
+                            item['PRICE_NUM'] = parseInt(priceStr) || 0;
+                        } else {
+                            item['PRICE_NUM'] = 0;
+                        }
+                        return item;
+                    });
+                    localStorage.setItem('pos_inventory', JSON.stringify(this.data));
+                    this.renderTable();
+                    if (typeof pos !== 'undefined') pos.renderProducts();
+                },
+                error: (err) => {
+                    console.log('Fallo al cargar', currentFile, 'intentando el siguiente...');
+                    currentIndex++;
+                    tryNextFile();
+                }
+            });
+        };
+
+        tryNextFile();
+    },
+
+
+    renderTable() {
+        const thead = document.getElementById('inv-table-head');
+        const tbody = document.getElementById('inv-table-body');
+        
+        if (!thead || !tbody) return;
+
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+
+        if (this.data.length === 0) return;
+
+        // Headers
+        const headers = ['IMAGEN', 'CODIGO', 'DESCRIPCION', 'MARCA', 'UNIDADES POR CAJA', 'PRECIO POR CAJA', 'STOCK CAJA'];
+        headers.forEach(h => {
+            const th = document.createElement('th');
+            th.innerText = h;
+            thead.appendChild(th);
+        });
+
+        // Rows
+        this.data.forEach(item => {
+            const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
+            const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
+            const stockVal = parseFloat(item['STOCK CAJA']) || 0;
+            const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></td>
+                <td>${item.CODIGO}</td>
+                <td>${item.DESCRIPCION}</td>
+                <td>${item.MARCA}</td>
+                <td>${item['UNIDADES POR CAJA']}</td>
+                <td>$${item.PRICE_NUM.toLocaleString('es-CL')}</td>
+                <td style="${stockStyle}">${Math.floor(stockVal)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    },
+
+    filterTable() {
+        const term = document.getElementById('inv-search').value.toLowerCase();
+        const rows = document.querySelectorAll('#inv-table-body tr');
+        
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(term) ? '' : 'none';
+        });
+    }
+};
+
+</script>
+    <script>
+// pos.js - Cash Register Logic
+
+const pos = {
+    cart: [],
+    
+    renderProducts() {
+        const list = document.getElementById('pos-product-list');
+        if (!list) return;
+
+        list.innerHTML = '';
+
+        // Display products from inventory
+        inventory.data.forEach(item => {
+            // Skip items without a description or price
+            if (!item.DESCRIPCION) return;
+
+            const card = document.createElement('div');
+            card.className = 'product-card ripple';
+            card.onclick = () => this.addToCart(item);
+
+            const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
+            const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
+            
+            const stockVal = parseFloat(item['STOCK CAJA']) || 0;
+            const stockStyle = stockVal <= 5 ? 'color: red;' : 'color: #444;';
+            const priceStr = item.PRICE_NUM ? item.PRICE_NUM.toLocaleString('es-CL') : '0';
+
+            card.innerHTML = `
+                <img src="${imgUrl}" style="width: 100%; height: 100px; object-fit: contain; margin-bottom: 8px; border-radius: var(--md-sys-shape-small);">
+                <div style="display: block !important; visibility: visible !important; font-size: 0.85rem !important; color: #111 !important; margin-bottom: 2px !important; text-align: center !important;">Cod: ${item.CODIGO || 'S/C'}</div>
+                <div class="product-name" style="display: block !important; visibility: visible !important; font-weight: bold !important; margin-bottom: 4px !important; font-size: 0.95rem !important; line-height: 1.2 !important; color: #000 !important; text-align: center !important;">${item.DESCRIPCION || 'Sin Descripción'}</div>
+                <div style="display: block !important; visibility: visible !important; font-size: 0.85rem !important; color: #444 !important; margin-bottom: 2px !important; text-align: center !important;">Marca: ${item.MARCA || 'N/A'}</div>
+                <div style="display: block !important; visibility: visible !important; font-size: 0.85rem !important; margin-bottom: 4px !important; font-weight: bold !important; ${stockStyle} text-align: center !important;">Stock: ${Math.floor(stockVal)}</div>
+                <div class="product-price" style="display: block !important; visibility: visible !important; font-size: 1.1rem !important; color: #00897b !important; font-weight: bold !important; text-align: center !important;">$${priceStr}</div>
+            `;
+            
+            list.appendChild(card);
+        });
+    },
+
+    filterProducts() {
+        const term = document.getElementById('pos-search').value.toLowerCase();
+        const cards = document.querySelectorAll('.product-card');
+        
+        cards.forEach(card => {
+            const name = card.querySelector('.product-name').innerText.toLowerCase();
+            card.style.display = name.includes(term) ? '' : 'none';
+        });
+    },
+
+    addToCart(item) {
+        // Check if already in cart
+        const existing = this.cart.find(c => c.codigo === item.CODIGO);
+        if (existing) {
+            existing.qty += 1;
+        } else {
+            this.cart.push({
+                codigo: item.CODIGO,
+                name: item.DESCRIPCION,
+                price: item.PRICE_NUM,
+                qty: 1
+            });
+        }
+        this.renderCart();
+    },
+
+    removeFromCart(index) {
+        this.cart.splice(index, 1);
+        this.renderCart();
+    },
+
+    updateQty(index, change) {
+        this.cart[index].qty += change;
+        if (this.cart[index].qty <= 0) {
+            this.removeFromCart(index);
+        } else {
+            this.renderCart();
+        }
+    },
+
+    renderCart() {
+        const list = document.getElementById('pos-cart-items');
+        if (!list) return;
+
+        list.innerHTML = '';
+        let total = 0;
+
+        this.cart.forEach((item, index) => {
+            const itemTotal = item.price * item.qty;
+            total += itemTotal;
+
+            const div = document.createElement('div');
+            div.className = 'cart-item';
+            
+            div.innerHTML = `
+                <div class="cart-item-info">
+                    <div><strong>${item.name}</strong></div>
+                    <div style="color: #666; font-size: 0.85rem;">$${item.price.toLocaleString('es-CL')} c/u</div>
+                </div>
+                <div class="cart-item-actions">
+                    <button class="btn-icon" onclick="pos.updateQty(${index}, -1)"><span class="material-icons-outlined">remove</span></button>
+                    <span>${item.qty}</span>
+                    <button class="btn-icon" onclick="pos.updateQty(${index}, 1)"><span class="material-icons-outlined">add</span></button>
+                    <span style="font-weight: bold; width: 70px; text-align: right;">$${itemTotal.toLocaleString('es-CL')}</span>
+                    <button class="btn-icon" onclick="pos.removeFromCart(${index})" style="color: var(--md-sys-color-error)"><span class="material-icons-outlined">delete</span></button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+
+        document.getElementById('pos-total').innerText = `$${total.toLocaleString('es-CL')}`;
+    },
+
+    checkout() {
+        if (this.cart.length === 0) {
+            alert('El carrito está vacío');
+            return;
+        }
+
+        const total = this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        
+        // Create sale record
+        const sale = {
+            id: Date.now(),
+            date: new Date().toISOString(),
+            branch: app.state.branch,
+            user: app.state.user.username,
+            items: [...this.cart],
+            total: total
+        };
+
+        // Save to reports
+        reports.addSale(sale);
+
+        // Clear cart
+        this.cart = [];
+        this.renderCart();
+
+        alert(`Venta completada exitosamente. Total: $${total.toLocaleString('es-CL')}`);
+    }
+};
+
+</script>
+    <script>
+// reports.js - Reports and Dashboard Logic
+
+const reports = {
+    sales: [],
+
+    init() {
+        const saved = localStorage.getItem('pos_sales');
+        if (saved) {
+            this.sales = JSON.parse(saved);
+        }
+    },
+
+    addSale(sale) {
+        this.sales.push(sale);
+        localStorage.setItem('pos_sales', JSON.stringify(this.sales));
+        // Update dashboard if active
+        if (app.state.user && app.state.user.role === 'admin') {
+            this.updateDashboard();
+        }
+    },
+
+    updateDashboard() {
+        this.calculateStats();
+        this.renderRecentSales();
+    },
+
+    calculateStats() {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        
+        const dayOfWeek = now.getDay(); // 0 is Sunday
+        const startOfWeek = new Date(startOfDay - (dayOfWeek * 24 * 60 * 60 * 1000)).getTime();
+        
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        const startOfYear = new Date(now.getFullYear(), 0, 1).getTime();
+
+        let daily = 0, weekly = 0, monthly = 0, yearly = 0;
+
+        this.sales.forEach(sale => {
+            const saleTime = new Date(sale.date).getTime();
+            
+            if (saleTime >= startOfYear) yearly += sale.total;
+            if (saleTime >= startOfMonth) monthly += sale.total;
+            if (saleTime >= startOfWeek) weekly += sale.total;
+            if (saleTime >= startOfDay) daily += sale.total;
+        });
+
+        const f = (val) => `$${val.toLocaleString('es-CL')}`;
+
+        if(document.getElementById('stat-daily')) document.getElementById('stat-daily').innerText = f(daily);
+        if(document.getElementById('stat-weekly')) document.getElementById('stat-weekly').innerText = f(weekly);
+        if(document.getElementById('stat-monthly')) document.getElementById('stat-monthly').innerText = f(monthly);
+        if(document.getElementById('stat-yearly')) document.getElementById('stat-yearly').innerText = f(yearly);
+    },
+
+    renderRecentSales() {
+        const tbody = document.getElementById('sales-table-body');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        
+        // Show last 50 sales, reversed
+        const recent = [...this.sales].reverse().slice(0, 50);
+
+        recent.forEach(sale => {
+            const tr = document.createElement('tr');
+            
+            const date = new Date(sale.date).toLocaleString('es-CL');
+            const itemsList = sale.items.map(i => `<b>${i.qty}x</b> ${i.name}`).join('<br>');
+
+            tr.innerHTML = `
+                <td>${date}</td>
+                <td style="text-transform: capitalize;">${sale.branch}</td>
+                <td>${sale.user}</td>
+                <td style="font-size: 0.85rem; line-height: 1.2;">${itemsList}</td>
+                <td style="font-weight: bold;">$${sale.total.toLocaleString('es-CL')}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    },
+
+    exportToExcel() {
+        const startInput = document.getElementById('export-start').value;
+        const endInput = document.getElementById('export-end').value;
+
+        let filteredSales = this.sales;
+
+        if (startInput || endInput) {
+            const start = startInput ? new Date(startInput).getTime() : 0;
+            // Set end to end of day
+            const end = endInput ? new Date(endInput + 'T23:59:59').getTime() : Infinity;
+
+            filteredSales = this.sales.filter(s => {
+                const t = new Date(s.date).getTime();
+                return t >= start && t <= end;
+            });
+        }
+
+        if (filteredSales.length === 0) {
+            alert('No hay ventas en el rango seleccionado.');
+            return;
+        }
+
+        // Prepare data for Excel
+        const data = filteredSales.map(sale => ({
+            'ID Venta': sale.id,
+            'Fecha': new Date(sale.date).toLocaleDateString('es-CL'),
+            'Hora': new Date(sale.date).toLocaleTimeString('es-CL'),
+            'Sucursal': sale.branch,
+            'Vendedor': sale.user,
+            'Total Venta': sale.total,
+            'Detalle Items (Cant x Nombre)': sale.items.map(i => `${i.qty}x ${i.name}`).join(' | ')
+        }));
+
+        // Create workbook and worksheet
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Ventas");
+
+        // Generate filename
+        const filename = `Reporte_Ventas_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+        // Download
+        XLSX.writeFile(wb, filename);
+    }
+};
+
+</script>
+    <script>
+// app.js - Main Application Controller
+
+const imageMap = {"trapero humedo 10 unidades": "TRAPERO HUMEDO 10 UNIDADES TOLL.webp", "trapero humedo 12 unidades": "TRAPERO HUMEDO 12 UNIDADES WINNEX.webp", "trapero humedo clasico 10 unidades": "TRAPERO HUMEDO CLASICO 10 UNIDADES EXCELL.webp", "trapero humedo piso flotante 10 unidades": "TRAPERO HUMEDO PISO FLOTANTE 10 UNIDADES EXCELL.webp", "trapero humedo habrillantador mas limpiador 10 unidades": "TRAPERO HUMEDO  HABRILLANTADOR MAS LIMPIADOR  10 UNIDADES  EXCELL.jpg", "trapero humedo abrillantador 10 unidades": "TRAPERO HUMEDO ABRILLANTADOR  10 UNIDADES  EXCELL.jpg", "trapero humedo 12mas1 unidades": "TRAPERO HUMEDO 12MAS1 UNIDADES  ULTRA CLEAN.jpg", "pastal dental triple accion": "PASTAL DENTAL TRIPLE ACCION COLGATE.jpg", "pasta dental triple accion": "PASTA DENTAL TRIPLE ACCION PEPSODENT.jpg", "pastas dental integral 18": "PASTAS DENTAL  INTEGRAL 18 PEPSODENT.jpg", "pasta dental pack 3": "PASTA DENTAL PACK 3 PEPSIODENT.webp", "pasta dental regular pack 3": "PASTA DENTAL  REGULAR PACK 3 FRESH  UP.jpg", "pasta detal whitening pack 3": "PASTA DETAL WHITENING PACK 3 FRESH UP.jpg", "cepillo de dientes medium": "CEPILLO DE DIENTES MEDIUM AQUAFRESH.jpg", "cepillo de dientes adulto suave": "CEPILLO DE DIENTES ADULTO SUAVE FRESH UP.webp", "cepillo de dientes adulto medio": "CEPILLO DE DIENTES ADULTO MEDIO FRESH UP.webp", "cepillo de diente ni\u00f1o": "CEPILLO DE DIENTE NI\u00d1O  PACK X2 FAMILY SET.webp", "cepillo de diente ni\u00f1o pack x2": "CEPILLO DE DIENTE NI\u00d1O  PACK X2 FAMILY SET.webp", "toalla humeda 80 unds pack 2": "TOALLA HUMEDA 80 UNDS PACK 2 OVELLA.jpg", "toalla humeda 80 unidades": "TOALLA HUMEDA 80 UNIDADES SOFT WIPES.webp", "toalla humedad 45 unidades": "TOALLA HUMEDAD 45 UNIDADES BABYSEC.webp", "toalla humeda 72 unidades": "TOALLA HUMEDA  72 UNIDADES SOFT CLOUD.webp", "toalla humeda adulto": "toalla humeda adulto activity12 unidades.webp", "toalla papel like ultra": "TOALLA PAPEL LIKE ULTRA TERSUS.webp", "detergente en polvo": "DETERGENTE EN POLVO WINNEX.png", "": "TRAPERO HUMEDO 2 EN 1 [LIMPIADOR +ABRILLANTADOR ]EXCELL10 UNIDADES.jpg", "removedor de manchas polvo": "REMOVEDOR DE MANCHAS POLVO WINNEX 500g.webp", "renovador de neumatico": "RENOVADOR DE NEUMATICO  TEDDY 500ML.webp", "pack promocional [renovador+cera]": "PACK PROMOCIONAL [RENOVADOR+CERA] TEDDY 500ML.webp", "javon liquido": "JAVON LIQUIDO VIDABELL 750ML.png", "detergente polvo omo con vicarbonato": "DETERGENTE POLVO OMO CON VICARBONATO OMO 800ML.webp", "omo para diluir piel sensible": "OMO PARA DILUIR PIEL SENSIBLE  OMO 500ML.jpg", "aromatizante de telas vais": "AROMATIZANTE DE TELAS VAIS ALGABO 500ML.png", "repuesto aromatizante ultra clean": "REPUESTO AROMATIZANTE ULTRA CLEAN ULTRA CLEAN 40ML.webp", "gel aromatizante ultra clean": "GEL AROMATIZANTE ULTRA CLEAN ULTRA CLEAN 212GRAMOS.png", "quitamanchas 2en 1": "QUITAMANCHAS 2EN 1 EXCELL 960ML.jpg", "desodorante de inodoro": "DESODORANTE DE INODORO ULTRA CLEAN 40GR.jpg", "cepillo aquafresh pack x2": "CEPILLO AQUAFRESH PACK X2 AQUAFRESH.jpg", "detergente liquido fuzol": "DETERGENTE LIQUIDO FUZOL 3LITROS.webp", "aposito cotidian": "APOSITO COTIDIAN COTIDIAN.png", "limpiadoe porcelanato y vinilicos": "LIMPIADOE PORCELANATO Y VINILICOS EXCELL 900ML.jpg", "cera autobrillo [ceramicos y baldosas ]": "CERA AUTOBRILLO [ceramicos y baldosas ] EXCELL 900ML.png", "limpiador de piso flotante": "LIMPIADOR DE PISO FLOTANTE EXCELL 900ML.webp", "cera pintura roja": "CERA PINTURA ROJA AYEAYE5 LITROS.png", "lustra muebles liquido gatillo": "LUSTRA MUEBLES LIQUIDO GATILLO EXCELL 500ML.webp", "antigrasa gatillo": "ANTIGRASA GATILLO EXCELL 500ML.png", "limpiador de ba\u00f1o gatillo": "LIMPIADOR DE BA\u00d1O GATILLO EXCELL 500ML.webp", "films plastico transparente": "FILMS PLASTICO TRANSPARENTE HOME KING 70 METROS.webp", "shampoo alfombra y tapices": "SHAMPOO ALFOMBRA Y TAPICES EXCELL.jpg", "lustra muebles": "LUSTRA MUEBLES LIQUIDO GATILLO EXCELL 500ML.webp", "tela antibacterial": "TELA  ANTIBACTERIAL  ULTRA CLEAN  30 UNIDADES.webp", "abrillantador piso flotante": "TRAPERO HUMEDO ABRILLANTADOR PISO FLOTANTE EXCELLEXCELL10 UNIDADES.webp", "espuma de afeitar": "espuma afeitar algabo.webp", "antigrasa gatillo winnex": "antigrasa gatillo winnex.jpg", "talco opara pies": "talco para pies algabo.webp", "quitaesmalte fortalecedor": "QUITAESMALTE FORTALECEDOR ALGABO 100 ML.png", "desodorante para inodoro": "DESODORANTE PARA INODORO WINNEX 40 GRAMOS.png", "pastillas para estanque": "pastillas para estanque x3EXCELL3 unidaes.webp", "talco para pies bolsa": "TALCO PARA PIES BOLSA  ALGABO 200 GRAMOS.webp", "pasta dental pepsodent pack 3x2": "PASTA DENTAL PEPSODENT PACK 3X2PEPSODENT 90 GRAMOS.webp", "limpiador en crema winnex": "LIMPIADOR EN CREMA WINNEX WINNEX 750 GRAMOS.webp", "limpiador en crema teddy": "LIMPIADOR EN CREMA TEDDYTEDDY 500 ML.webp", "limpiador en crema excell": "LIMPIADOR EN CREMA EXCELLEXCELL250 ML.webp", "bolsa de bausra 100 x 120": "BOLSA DE BASURA 80 X 110 excel.jpg", "bolsa de basura 90 x120": "BOLSA DE BASURA 80 X 110 excel.jpg", "bolsa de basura 90 x 120": "BOLSA DE BASURA 80 X 110 excel.jpg", "bolsa de basura 80 x 110": "BOLSA DE BASURA 80 X 110 excel.jpg", "bolsa de basura 70x 90": "BOLSA DE BASURA 70X 90EXCELL10 UNIDADES.webp", "bolsa de basura 55x50 blanca": "BOLSA DE BASURA 55X50 BLANCAULTRA CLEAN 20 UNIDADES.webp", "pasta dental pepsodent triple+": "PASTA DENTAL PEPSODENT TRIPLE+PEPSODENT90 GRAMOS.webp", "pasta dental pepsodent integral 18": "PASTA DENTAL PEPSODENT INTEGRAL 18PEPSODENT90 GRAMOS.webp", "shampoo": "SHAMPOO ALFOMBRA Y TAPICES EXCELL.jpg", "briks lavalozas consentrado": "BRIKS LAVALOZAS CONSENTRADOBRIKS2 LITROS.jpg", "lavalozas desengrasante bolsa": "LAVALOZAS DESENGRASANTE BOLSAEXCELL1 LITRO.webp", "lavaloza desengrasante excell": "LAVALOZA DESENGRASANTE EXCELLEXCELL750 CC.jpg", "quita grasa profecional gatillo": "QUITA GRASA PROFESIONAL GATILLOEXCELL500 ML.webp", "cloro en tabletas teddy": "CLORO EN TABLETAS TEDDYTEDDY1 KG.webp", "pastilla de cloro grande": "PASTILLA DE CLORO GRANDE TEDDY1 KG.webp", "limpiapiso aye": "LIMPIAPISO AYE AYE2 LITROS.png", "desengrasante aye": "DESENGRASANTE AYE GATILLOAYE1 LITRO.webp", "desengrasante aye gatillo": "DESENGRASANTE AYE GATILLOAYE1 LITRO.webp", "removedor de sarro aye": "removedor de litro.jpeg", "cera pintura roja aye": "CERA PINTURA ROJA AYEAYE5 LITROS.png", "detergente perlado aye": "DETERGENTE PERLADO AYEAYE5 LITROS.webp", "detergente briks": "DETERGENTE BRIKSBRIKS5 LITROS.webp", "detergente economico aye": "DETERGENTE ECONOMICO AYEAYE5 LITROS.jpg", "pa\u00f1o microfibra teddy": "PA\u00d1O  MICROFIBRA TEDDYTEDDY25.jpg", "valde trapeador": "VALDE TRAPEADOR ULTRA CLEAN.jpg", "bolsa de basura 80x110": "BOLSA DE BASURA 80 X 110 excel.jpg", "discos actvos excell": "DISCOS ACTIVOS EXCELLEXCELL38 ML.jpg", "trapero humedo abrillantador piso flotante excell": "TRAPERO HUMEDO ABRILLANTADOR PISO FLOTANTE EXCELLEXCELL10 UNIDADES.webp", "trapero humedo piso flotante desinfectante excell": "TRAPERO HUMEDO PISO FLOTANTE DESINFECTANTE EXCELLEXCELL10 UNIDADES.webp", "trapero humedo clasico": "TRAPERO HUMEDO CLASICO 10 UNIDADES EXCELL.webp", "desodorante ambiental winnexs": "DESODORANTE AMBIENTAL WINNEXSWINNEX400 ML.png", "desodorante ambeintal winnexs": "DESODORANTE AMBEINTAL WINNEXSWINNEXS250 ML.webp", "desodorante ambiental arom": "DESODORANTE AMBIENTAL AROMAROM225 GRAMOS.png", "trapero humedo 2 en 1 [limpiador +abrillantador ]": "TRAPERO HUMEDO 2 EN 1 [LIMPIADOR +ABRILLANTADOR ]EXCELL10 UNIDADES.jpg", "cloro gel excell": "CLORO GEL EXCELLEXCELL900 ML.jpg", "quitamanchas gatillo": "QUITAMANCHAS GATILLOEXCELL500 ML.webp", "limpiador de ba\u00f1o ultra pawer prfesional gatillo": "LIMPIADOR DE BA\u00d1O ULTRA PAWERPRFESIONAL GATILLOEXCELL500 ML.jpg", "lavaloza rinso": "LAVALOZA RINSORINSO750 ML.webp", "limpiador crema excell": "LIMPIADOR CREMA EXCELL EXCELL500 ML.png", "suavizante para diluir excell bolsa": "SUAVIZANTE PARA DILUIR EXCELL BOLSAEXCELL500 ML.jpg", "vanish polvo": "VANISH POLVO VANISH30 GRAMOS.jpg", "lavaloza quix": "LAVALOZA QUIXQUIX1.500 ML.webp", "toallas humedas babysec": "TOALLA HUMEDAD 45 UNIDADES BABYSEC.webp", "toallas limpiamuebles winnexs": "TOALLAS LIMPIAMUEBLES WINNEXSWINNEX80UNIDADES.webp", "crema corporal hidratante algabo": "CREMA CORPORAL HIDRATANTE ALGABOALGABO400 ML.webp", "bolsa de basura ultra clean 105x150": "BOLSA DE BASURA ULTRA CLEAN 105X150ULTRA CLEAN10 UNIDADES.jpg", "shampoo baby algabo": "SHAMPOO BABY ALGABOALGABO444 ML.jpg", "acondicionador kids algabo": "ACONDICIONADOR KIDS ALGABO ALGABO350 ML.png", "bolsa de basura ultra clean 70x90": "BOLSA DE BASURA ULTRA CLEAN 70X90ULTRA CLEAN10 UNIDADES.webp", "cif crema multiuso": "CIF CREMA MULTIUSOCIF750 MGRAMOS.webp", "limpiapisos winnex :) :) ;) ;):):)": "LIMPIAPISOS WINNEX WINNEX900 ML.jpg", "toallas femeninas care up noches tranquilas": "TOALLAS FEMENINAS CARE UP NOCHES TRANQUILASCARE UP16 TOALLAS.webp", "toallas femeninas ultrafina con alas": "TOALLAS FEMENINAS ULTRAFINA CON ALASCARE UP16 TOALLAS.webp", "toallas humedas care up": "TOALLAS HUMEDASCAREUPCAREUP45 UNIDADES.jpg", "toallas humedas desinfegtantes teddy": "TOALLAS HUMEDAS DESINFEGTANTES TEDDYTEDDY50 UNIDADES.jpeg", "cotonito 200 unid sotf cloud": "COTONITO 200 UNID SOTF CLOUDSOTF CLOUD200 UNIDADES.jpg", "cotonito 100 unid soft cloud": "COTONITO 100 UNID SOFT CLOUDSOFTCLOUD100 UNIDADES.webp", "cotonitos 300 unid soft cloud": "COTONITOS 300 UNID SOFT CLOUDSOFTCLOUD300 UNIDADES.jpg", "detergente liquido popeye 3 litros": "DETERGENTE LIQUIDO POPEYE 3 LITROSPOPEYE3 LITROS.webp", "pilas aa energizer": "PILAS AA ENERGIZERENERGIZER12.webp", "limpiapisos excell": "LIMPIAPISOS EXCELLEXCELL900 ML.jpg", "pala plastica ultra clean": "PALA PLASTICAULTRA CLEANULTRACLEAN1.webp", "escobillon economico uiltra clean x48 unid": "escobillon economico uiltra clean x48 unidULTRA CLEAN1.png", "escoba economica ultra clean x24 unid": "escobillon economico uiltra clean x48 unidULTRA CLEAN1.png", "bolsa de basura 90x120 excell": "BOLSA DE BASURA 80 X 110 excel.jpg", "limpiapisos virutex": "limpiapisosvirutex 900 ml.webp", "pasta dental cogate": "pasta dental cogatecolgate75 ml.webp", "enjuague bucal frehs": "ENJUAGUE BUCAL FRESH UPFRESH UP500 ML.jpg", "enjuague bucal fresh up": "ENJUAGUE BUCAL FRESH UPFRESH UP500 ML.jpg", "enjuague bucal listerine": "ENJUAGUE BUCAL LISTERINE LISTERINE180 ML.webp", "desodorante ambiental brillex": "DESODORANTE AMBIENTAL BRILLEXBRILLEX400 ML.png", "insecticida casa jardin raid": "INSECTICIDA CASA JARDIN RAIDSC JHONSON271 GRAMOS.jpg", "limpia vidrios y superficies winnex": "LIMPIA VIDRIOS Y SUPERFICIES WINNEXWINNEX650 ML.webp", "removedor rest a clin": "REMOVEDOR REST A CLIN EXCELL500 ML.webp", "toallas femeninas nocturna maxi pro": "TOALLAS FEMENINAS NOCTURNA MAXI PRO LADYSOFT10 UNIDADES.webp", "toallas femeninas ultra delgada x8": "TOALLAS FEMENINAS ULTRA DELGADA X8NOSOTRAS8 TOALLAS.jpg", "toallas femeninas ultradelgada x16": "TOALLAS FEMENINAS ULTRADELGADA X16LADYSOFT16 TOALLAS.jpg", "toallas femeninas natural-v normal con alas": "TOALLAS FEMENINAS NATURAL-V NORMAL CON ALASNOSOTRAS8 TOALLAS.png", "toalla femenina ultra delgada x8": "TOALLA FEMENINA ULTRA DELGADA  X8LADYSOFT8 TOALLAS.webp", "toallas femeninas proteccion-v delgada x6": "TOALLAS FEMENINAS PROTECCION-V DELGADA X6NOSOTRAS6 TOALLAS.webp", "toallas femeninas nocturna ultra delgada x7": "TOALLAS FEMENINAS NOCTURNA ULTRA DELGADA X7LADYSOFT7 TOALLAS.webp", "toalla femenina pack x16 normal": "TOALLA FEMENINA PACK X16  NORMALLADYSOFT16 UNIDADES.webp", "esponja suave-oro-plata": "ESPONJA SUAVEOROPLATAULTRACLEAN3UNIDADES.webp", "esponja magica x3": "ESPONJA MAGICA X3ULTRA CLEAN3 UNIDADES.png", "esponja cero rayas packs x3": "ESPONJA CERO RAYAS PACKS X3ULTRA CLEAN3 UNIDADES.jpeg", "esponja magica x20": "ESPONJA MAGICA X20ULTRA CLEAN2O UNIDADES.jpg", "esponja abrasiva x3": "ESPONJA ABRASIVA X3ULTRA CLEAN3 UNIDADES.webp", "esponja cero rayas packs x20": "ESPONJA CERO RAYAS PACKS X20ULTRA CLEAN20 UNIDADES.jpg", "guantes amarllos teddy": "GUANTES AMARLLOS TEDDYTEDDY12 UNIDADES.webp", "guantes nitrilo ultra clean": "GUANTES NITRILO ULTRA CLEANULTRA CLEAN1 PAR.webp", "pa\u00f1o de cocina microfibra": "PA\u00d1O DE COCINA MICROFIBRATEDDY.jpg", "toallas femeninas normal x8": "TOALLAS FEMENINAS NORMAL X8LADYSOFT8 TOALLAS.png", "esponja grill xl x2": "ESPONJA GRILL XL X2 ULTRA CLEAN2 UNIDADES.webp", "esponja abrasiva winnex x5": "ESPONJA ABRASIVA WINNEX X5WINNEX5 UNIDADES.webp", "virutills plateada tddy x25": "virutills plateada tddy x25teddy25 unidades.webp", "virutilladorada x25 teddy": "virutilladorada x25 teddyteddy25 unidades.webp", "esponja galvanizada x1 ultra clean": "esponja galvanizada x1 ultra cleanultra clean1 unidad.jpeg", "trapero de algodon teddy": "trapero de algodon teddyteddy25 unidades.jpg", "jabonera economica": "jabonera economica10 unidades.png", "escobilla grande para ropa": "escobilla grande  para ropa10 unidades.webp", "escobilla peque\u00f1a x2": "escobilla peque\u00f1a x212 paks x2.jpg", "esponja plateada safi tex": "esponja plateada safi texsafi tex1.jpg", "cepillo de ba\u00f1o": "cepillo de ba\u00f1o.jpeg", "set de ducha": "set deducha.webp", "esponja deluxe colores": "esponja deluxe colores.webp", "pasta dental kids x12": "pasta dental kids x12 12 unidades.webp", "toalla humeda adulto activity": "TOALLA HUMEDA ADULTO ACTIVITY.webp", "toalla humeda babysec x45": "toalla humeda babysec x45babysec45 unidades.png", "toalla humeda soft cloud animalito": "toalla humeda soft cloud animalitosouft cloud72 unidades.webp", "velas peque\u00f1a winnex": "velas peque\u00f1a winnexWINNEX 4 unidades.jpg", "vela grande winnex": "vela grande winnexWINNEX4 unidades.webp", "detergente para ropa negra": "detergente para ropa negra1 litro.jpg", "pasta dental fresh up x6": "pasta dental fresh up x6frehs up130 gramos.webp", "toalla humeda garffield": "toalla humeda garffieldsoft wipes80 unidaes.webp", "toalla cilicona wiinex cars": "toalla cilicona wiinex carsWINNEX80 unidaes.png", "antigrasa doypack": "antigrasa doypackEXCELL 500 ml.jpg", "multiusos limpiavidrios excell": "multiusos limpiavidrios excellEXCELL500 ml.jpg", "pastillas para estanque x3": "pastillas para estanque x3EXCELL3 unidaes.webp", "pa\u00f1o esponja premiun teddy": "pa\u00f1o esponja premiun teddyteddy3 unidades.png", "nova ultra gigante 70": "nova ultra gigante 70nova70 metros.webp", "confort noble de 23 metros": "confort noble de 23 metrosnoblepacks x3.webp", "confort elite 50 metros": "confort elite 50 metroselitepacks x2.png", "confort confort x50 metros": "confort confort x50 metrosconfortpacks x2.webp", "confort suan 20 metros": "confort suan 20 metros suanpacks x6.webp", "conforte ovella 22 metros": "conforte ovella 22 metros ovellapacks x6.jpg", "confort noble 22 metros": "confortovella 22metrosx6.webp", "conforte ovella de 50 metros": "conforte ovella de 50 metrosovellapacks x4.webp", "nova suan ultra x70": "nova suan ultra x70suan70 metros.webp", "nova ovella roja xl": "nova ovella roja xlovella100 metros.webp", "servilleta nova pack familiar": "servilleta nova pack familiarnova 300 unidaes.webp", "nova clasica giganrte x70": "nova clasica giganrte x70nova 70 metros.webp", "nova clasica x3": "nova clasica x3nova packs x3.jpg", "nova ovella gigante de 100 metros": "nova ultra gigante 70nova70 metros.webp", "pa\u00f1al babysec": "pa\u00f1al babysec babysec14 unidades.png", "pa\u00f1al para adulto care up x16": "pa\u00f1al para adulto care upx16careup16 unidades.webp", "pa\u00f1al para adulto caree up x 20": "pa\u00f1al para adulto caree up x 20care up20 unidades.webp", "sabanilla care up x8": "sabanilla care up x8care up8 unidades.webp", "aposito multiuso care up": "aposito multiuso care upcare up20unidades.webp", "pa\u00f1os amarillos": "pa\u00f1os amarillos360 unidades.webp"};
+const app = {
+    state: {
+        branch: null, // 'norte' or 'sur'
+        user: null,   // { role: 'cashier'|'admin', username: string }
+        targetModule: null // 'pos', 'ventas', 'logistica'
+    },
+
+    init() {
+        // Initialize modules
+        inventory.init();
+        reports.init();
+        this.showView('view-home');
+    },
+
+    selectBranch(branchId) {
+        this.state.branch = branchId;
+        localStorage.setItem('pos_branch', branchId);
+        
+        // Show main menu view
+        this.showView('view-menu');
+    },
+
+    goHome() {
+        this.state.branch = null;
+        localStorage.removeItem('pos_branch');
+        this.showView('view-home');
+    },
+
+    selectModule(moduleId) {
+        this.state.targetModule = moduleId;
+        
+        // Update login title
+        let moduleName = '';
+        if(moduleId === 'pos') moduleName = 'Caja Registradora';
+        if(moduleId === 'ventas') moduleName = 'Ventas';
+        if(moduleId === 'logistica') moduleName = 'Logística';
+        
+        document.getElementById('login-title').innerText = `Ingreso a ${moduleName}`;
+        this.showView('view-login');
+    },
+
+    showApp() {
+        // Setup UI
+        document.getElementById('current-branch-display').innerText = `Pudahuel ${this.state.branch === 'norte' ? 'Norte' : 'Sur'}`;
+        document.getElementById('current-user-display').innerText = this.state.user.username;
+
+        this.showView('view-main');
+        
+        // Hide all modules
+        document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+        
+        // Show target module
+        document.getElementById(`module-${this.state.targetModule}`).classList.add('active');
+        
+        // Trigger module specific actions
+        if (this.state.targetModule === 'ventas') {
+            reports.updateDashboard();
+        }
+        if (this.state.targetModule === 'logistica' || this.state.targetModule === 'pos') {
+            inventory.loadCSV(); // load/refresh data
+        }
+    },
+
+    showView(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+    }
+};
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});
+
+</script>
+</body>
+</html>
