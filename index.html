@@ -991,26 +991,22 @@ const inventory = {
 
         // Rows
         this.data.forEach(item => {
-            const desc = item.DESCRIPCION || item.descripcion || item.Descripcion;
-            if (!desc || desc.trim() === '') return;
+            if (!item.DESCRIPCION) return;
 
-            const cleanDesc = desc.trim().toLowerCase().replace(/\s+/g, ' ');
+            const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
             const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
-            const stockVal = parseFloat(item['STOCK CAJA'] || item['stock'] || item['UNIDADES POR CAJA'] || item['unidades_por_caja']) || 0;
+            const stockVal = parseFloat(item['STOCK CAJA']) || 0;
             const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
-            const pNum = Number(item.PRICE_NUM) || Number(item.precio_caja) || 0;
-            const cod = item.CODIGO || item.codigo || '';
-            const mar = item.MARCA || item.marca || 'N/A';
-            const unids = item['UNIDADES POR CAJA'] || item.unidades_por_caja || '';
+            const priceNum = item.PRICE_NUM || 0;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></td>
-                <td>${cod}</td>
-                <td>${desc}</td>
-                <td>${mar}</td>
-                <td>${unids}</td>
-                <td>$${pNum.toLocaleString('es-CL')}</td>
+                <td>${item.CODIGO || ''}</td>
+                <td>${item.DESCRIPCION}</td>
+                <td>${item.MARCA || ''}</td>
+                <td>${item['UNIDADES POR CAJA'] || ''}</td>
+                <td>$${priceNum.toLocaleString('es-CL')}</td>
                 <td style="${stockStyle}">${Math.floor(stockVal)}</td>
             `;
             tbody.appendChild(tr);
