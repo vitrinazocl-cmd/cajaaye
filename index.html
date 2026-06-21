@@ -809,8 +809,8 @@ button:active {
                                 <span class="material-icons-outlined">search</span>
                                 <input type="text" id="inv-search" placeholder="Buscar producto en bodega..." onkeyup="inventory.filterTable()">
                             </div>
-                            <div class="table-responsive">
-                                <table class="data-table" id="inventory-table">
+                            <div class="table-responsive" style="min-height: 500px; width: 100%; overflow-y: auto; display: block;">
+                                <table class="data-table" id="inventory-table" style="width: 100%; visibility: visible;">
                                     <thead id="inv-table-head"></thead>
                                     <tbody id="inv-table-body"></tbody>
                                 </table>
@@ -990,6 +990,7 @@ const inventory = {
         });
 
         // Rows
+        let count = 0;
         this.data.forEach(item => {
             if (!item.DESCRIPCION) return;
 
@@ -1010,7 +1011,14 @@ const inventory = {
                 <td style="${stockStyle}">${Math.floor(stockVal)}</td>
             `;
             tbody.appendChild(tr);
+            count++;
         });
+
+        // Debug visual
+        const searchInput = document.getElementById('inv-search');
+        if (searchInput) {
+            searchInput.placeholder = `Se cargaron ${count} productos...`;
+        }
     },
 
     filterTable() {
