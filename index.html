@@ -954,7 +954,8 @@ const inventory = {
 
         // Rows
         this.data.forEach(item => {
-            const imgUrl = imageMap[item.DESCRIPCION.trim().toLowerCase()] || 'logo.jpg.jpeg';
+            const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
+            const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></td>
