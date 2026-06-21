@@ -894,16 +894,28 @@ const inventory = {
                     this.data = results.data.map(row => {
                         const cleanRow = {};
                         for (let key in row) {
-                            cleanRow[key.trim()] = row[key].trim();
+                            cleanRow[key.trim().toLowerCase()] = row[key].trim();
                         }
-                        if (!cleanRow['CODIGO']) cleanRow['CODIGO'] = 'GEN-' + Math.random().toString(36).substr(2, 9);
-                        if (cleanRow['PRECIO POR CAJA']) {
-                            let priceStr = cleanRow['PRECIO POR CAJA'].replace('$', '').replace(/\./g, '').trim();
-                            cleanRow['PRICE_NUM'] = parseInt(priceStr) || 0;
+                        
+                        const item = {
+                            CODIGO: cleanRow['codigo'] || '',
+                            DESCRIPCION: cleanRow['descripcion'] || '',
+                            MARCA: cleanRow['marca'] || '',
+                            CONTENIDO: cleanRow['contenido'] || '',
+                            'UNIDADES POR CAJA': cleanRow['unidades_por_caja'] || cleanRow['unidades por caja'] || '',
+                            'PRECIO POR CAJA': cleanRow['precio_caja'] || cleanRow['precio por caja'] || '',
+                            'STOCK CAJA': cleanRow['stock'] || cleanRow['stock caja'] || '',
+                            AROMAS: cleanRow['aromas'] || ''
+                        };
+
+                        if (!item['CODIGO']) item['CODIGO'] = 'GEN-' + Math.random().toString(36).substr(2, 9);
+                        if (item['PRECIO POR CAJA']) {
+                            let priceStr = item['PRECIO POR CAJA'].replace('$', '').replace(/\./g, '').trim();
+                            item['PRICE_NUM'] = parseInt(priceStr) || 0;
                         } else {
-                            cleanRow['PRICE_NUM'] = 0;
+                            item['PRICE_NUM'] = 0;
                         }
-                        return cleanRow;
+                        return item;
                     });
                     localStorage.setItem('pos_inventory', JSON.stringify(this.data));
                     this.renderTable();
