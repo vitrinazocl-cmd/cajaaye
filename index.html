@@ -873,54 +873,54 @@ const inventory = {
         }
     },
 
+    
     loadCSV() {
-        // We use PapaParse to fetch and read the local CSV.
-        // This requires the app to be served over HTTP (e.g. live server).
-        Papa.parse("inventario.csv", {
-            download: true,
-            header: true,
-            delimiter: ";",
-            skipEmptyLines: true,
-            complete: (results) => {
-                // Clean headers and data
-                this.data = results.data.map(row => {
-                    const cleanRow = {};
-                    for (let key in row) {
-                        cleanRow[key.trim()] = row[key].trim();
-                    }
-                    
-                    // Generate a random ID if CODIGO is empty for internal tracking
-                    if (!cleanRow['CODIGO']) {
-                        cleanRow['CODIGO'] = 'GEN-' + Math.random().toString(36).substr(2, 9);
-                    }
+        const filesToTry = ['inventario.csv', 'inventario.csv.csv', 'inventario a&e.csv'];
+        let currentIndex = 0;
 
-                    // Parse price
-                    if (cleanRow['PRECIO POR CAJA']) {
-                        let priceStr = cleanRow['PRECIO POR CAJA'].replace('$', '').replace(/\./g, '').trim();
-                        cleanRow['PRICE_NUM'] = parseInt(priceStr) || 0;
-                    } else {
-                        cleanRow['PRICE_NUM'] = 0;
-                    }
-
-                    return cleanRow;
-                });
-                
-                // Save to local storage for quick access
-                localStorage.setItem('pos_inventory', JSON.stringify(this.data));
-                
-                this.renderTable();
-                
-                // Also update POS products if we are in the app
-                if (window.pos) {
-                    pos.renderProducts();
-                }
-            },
-            error: (err) => {
-                console.error("Error loading CSV:", err);
-                alert("Error al cargar el inventario. Asegúrese de estar ejecutando la aplicación a través de un servidor web local para poder leer el archivo CSV.");
+        const tryNextFile = () => {
+            if (currentIndex >= filesToTry.length) {
+                console.error('No se pudo cargar el inventario.');
+                alert('Error al cargar el inventario. Asegurese de que el archivo CSV este subido a GitHub.');
+                return;
             }
-        });
+
+            const currentFile = filesToTry[currentIndex];
+            Papa.parse(currentFile, {
+                download: true,
+                header: true,
+                delimiter: ';',
+                skipEmptyLines: true,
+                complete: (results) => {
+                    this.data = results.data.map(row => {
+                        const cleanRow = {};
+                        for (let key in row) {
+                            cleanRow[key.trim()] = row[key].trim();
+                        }
+                        if (!cleanRow['CODIGO']) cleanRow['CODIGO'] = 'GEN-' + Math.random().toString(36).substr(2, 9);
+                        if (cleanRow['PRECIO POR CAJA']) {
+                            let priceStr = cleanRow['PRECIO POR CAJA'].replace('$', '').replace(/\./g, '').trim();
+                            cleanRow['PRICE_NUM'] = parseInt(priceStr) || 0;
+                        } else {
+                            cleanRow['PRICE_NUM'] = 0;
+                        }
+                        return cleanRow;
+                    });
+                    localStorage.setItem('pos_inventory', JSON.stringify(this.data));
+                    this.renderTable();
+                    if (window.pos) pos.renderProducts();
+                },
+                error: (err) => {
+                    console.log('Fallo al cargar', currentFile, 'intentando el siguiente...');
+                    currentIndex++;
+                    tryNextFile();
+                }
+            });
+        };
+
+        tryNextFile();
     },
+
 
     renderTable() {
         const thead = document.getElementById('inv-table-head');
