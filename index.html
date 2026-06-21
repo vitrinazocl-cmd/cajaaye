@@ -816,7 +816,7 @@ button:active {
                                 </table>
                             </div>
                         </div>
-
+                    </div>
                 </main>
             </div>
         </section>
@@ -911,8 +911,14 @@ const inventory = {
     },
 
     
-    loadCSV() {
-        const t = new Date().getTime(); const filesToTry = ['inventario_limpio.csv?t='+t, 'inventario_limpio?t='+t, 'inventariobien.csv?t='+t, 'inventariobien?t='+t, 'inventario.csv?t='+t, 'inventario.csv.csv?t='+t, 'inventario a&e.csv?t='+t, 'inventario%20a%26e.csv?t='+t];
+    loadCSV(force = false) {
+        if (!force && this.data && this.data.length > 0) {
+            this.renderTable();
+            if (typeof pos !== 'undefined') pos.renderProducts();
+            return;
+        }
+        
+        const filesToTry = ['inventario_limpio.csv', 'inventario_limpio', 'inventariobien.csv', 'inventariobien', 'inventario.csv', 'inventario.csv.csv', 'inventario a&e.csv', 'inventario%20a%26e.csv'];
         let currentIndex = 0;
 
         const tryNextFile = () => {
@@ -991,33 +997,42 @@ const inventory = {
 
         // Rows
         let count = 0;
+        let errors = 0;
         this.data.forEach(item => {
-            if (!item.DESCRIPCION) return;
+            try {
+                if (!item.DESCRIPCION) return;
 
-            const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
-            const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
-            const stockVal = parseFloat(item['STOCK CAJA']) || 0;
-            const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
-            const priceNum = item.PRICE_NUM || 0;
+                const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
+                const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
+                const stockVal = parseFloat(item['STOCK CAJA']) || 0;
+                const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
+                const priceNum = item.PRICE_NUM || 0;
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></td>
-                <td>${item.CODIGO || ''}</td>
-                <td>${item.DESCRIPCION}</td>
-                <td>${item.MARCA || ''}</td>
-                <td>${item['UNIDADES POR CAJA'] || ''}</td>
-                <td>$${priceNum.toLocaleString('es-CL')}</td>
-                <td style="${stockStyle}">${Math.floor(stockVal)}</td>
-            `;
-            tbody.appendChild(tr);
-            count++;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></td>
+                    <td>${item.CODIGO || ''}</td>
+                    <td>${item.DESCRIPCION}</td>
+                    <td>${item.MARCA || ''}</td>
+                    <td>${item['UNIDADES POR CAJA'] || ''}</td>
+                    <td>$${priceNum.toLocaleString('es-CL')}</td>
+                    <td style="${stockStyle}">${Math.floor(stockVal)}</td>
+                `;
+                tbody.appendChild(tr);
+                count++;
+            } catch (e) {
+                errors++;
+                console.error(e);
+                const errTr = document.createElement('tr');
+                errTr.innerHTML = `<td colspan="7" style="color:red;">Error rendering item: ${e.message}</td>`;
+                tbody.appendChild(errTr);
+            }
         });
 
         // Debug visual
         const searchInput = document.getElementById('inv-search');
         if (searchInput) {
-            searchInput.placeholder = `Se cargaron ${count} productos...`;
+            searchInput.placeholder = `Se cargaron ${count} productos. Errores: ${errors}`;
         }
     },
 
