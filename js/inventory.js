@@ -71,8 +71,9 @@ const inventory = {
 
         // Rows as Cards
         this.data.forEach(item => {
-            // Skip items without a description
-            if (!item.DESCRIPCION) return;
+            // Check descriptions flexibly
+            const desc = item.DESCRIPCION || item.descripcion || item.Descripcion;
+            if (!desc || desc.trim() === '') return;
 
             const card = document.createElement('div');
             card.className = 'product-card ripple';
@@ -80,16 +81,16 @@ const inventory = {
             const imgContainer = document.createElement('div');
             imgContainer.className = 'product-image-container';
             const img = document.createElement('img');
-            img.src = `stock productos/${item.DESCRIPCION}.jpg`;
+            img.src = `stock productos/${desc}.jpg`;
             img.onerror = function() {
                 this.onerror = null;
-                this.src = `stock productos/${item.DESCRIPCION}.webp`;
+                this.src = `stock productos/${desc}.webp`;
                 this.onerror = function() {
                     this.onerror = null;
-                    this.src = `stock productos/${item.DESCRIPCION}.png`;
+                    this.src = `stock productos/${desc}.png`;
                     this.onerror = function() {
                         this.onerror = null;
-                        this.src = 'logo.jpg.jpeg'; // fallback logo
+                        this.src = 'logo.jpg.jpeg';
                     };
                 };
             };
@@ -97,24 +98,28 @@ const inventory = {
 
             const code = document.createElement('div');
             code.className = 'product-code';
-            code.innerText = `Cod: ${item.CODIGO || ''}`;
+            const cod = item.CODIGO || item.codigo || '';
+            code.innerText = `Cod: ${cod}`;
 
             const name = document.createElement('div');
             name.className = 'product-name';
-            name.innerText = item.DESCRIPCION;
+            name.innerText = desc;
 
             const brand = document.createElement('div');
             brand.className = 'product-brand';
-            brand.innerText = `Marca: ${item.MARCA || 'N/A'}`;
+            const mar = item.MARCA || item.marca || 'N/A';
+            brand.innerText = `Marca: ${mar}`;
 
             const stock = document.createElement('div');
-            const stockQty = parseInt(item['STOCK CAJA']) || parseInt(item['UNIDADES POR CAJA']) || 0;
+            const stockVal = item['STOCK CAJA'] || item['stock'] || item['UNIDADES POR CAJA'] || item['unidades_por_caja'];
+            const stockQty = parseInt(stockVal) || 0;
             stock.className = `product-stock ${stockQty <= 5 ? 'low-stock' : 'normal-stock'}`;
             stock.innerText = `Stock: ${stockQty}`;
 
             const price = document.createElement('div');
             price.className = 'product-price';
-            price.innerText = `$${(item.PRICE_NUM || 0).toLocaleString('es-CL')}`;
+            const pNum = Number(item.PRICE_NUM) || Number(item.precio_caja) || 0;
+            price.innerText = `$${pNum.toLocaleString('es-CL')}`;
 
             card.appendChild(imgContainer);
             card.appendChild(code);
@@ -122,6 +127,13 @@ const inventory = {
             card.appendChild(brand);
             card.appendChild(stock);
             card.appendChild(price);
+            
+            // To ensure they are always visible:
+            code.style.display = 'block';
+            name.style.display = 'block';
+            brand.style.display = 'block';
+            stock.style.display = 'block';
+            price.style.display = 'block';
             
             list.appendChild(card);
         });
