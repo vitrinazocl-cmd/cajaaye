@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard POS & Logística</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+    <!-- Styles -->
+    <style>
+:root {
+    /* Material Design Tokens */
+    --md-sys-color-primary: #1976d2;
+    --md-sys-color-primary-container: #d3e3fd;
+    --md-sys-color-on-primary-container: #041e49;
+    --md-sys-color-secondary: #00897b;
+    --md-sys-color-error: #b3261e;
+    --md-sys-color-background: #f8fdff;
+    --md-sys-color-surface: #ffffff;
+    --md-sys-color-on-surface: #191c1d;
+    --md-sys-color-on-surface-variant: #40484c;
+    --md-sys-color-outline: #70787d;
+
+    /* Semantic Colors */
+    --success: #2e7d32;
+    --warning: #ed6c02;
+    --info: #0288d1;
+
+    /* Typography */
+    --font-family: 'Roboto', sans-serif;
+    
+    /* Shadows */
+    --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    
+    /* Radii */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+
+    /* Transitions */
+    --transition-standard: 0.2s ease-in-out;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--md-sys-color-background);
+    color: var(--md-sys-color-on-surface);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Utilities */
+.shadow-1 { box-shadow: var(--shadow-1); }
+.shadow-2 { box-shadow: var(--shadow-2); }
+.card {
+    background-color: var(--md-sys-color-surface);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+.w-100 { width: 100%; }
+.bg-blue { background-color: var(--md-sys-color-primary); color: white; }
+.bg-green { background-color: var(--success); color: white; }
+.bg-orange { background-color: var(--warning); color: white; }
+.bg-purple { background-color: #7b1fa2; color: white; }
+.error-msg { color: var(--md-sys-color-error); font-size: 0.875rem; margin-top: 0.5rem; display: none; }
+
+/* Views & Routing */
+.view {
+    display: none;
+    min-height: 100vh;
+}
+.view.active {
+    display: block;
+}
+.module {
+    display: none;
+}
+.module.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Buttons */
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-standard), transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+button:active {
+    transform: scale(0.98);
+}
+.btn-primary {
+    background-color: var(--md-sys-color-primary);
+    color: white;
+    padding: 10px 20px;
+}
+.btn-primary:hover {
+    background-color: #1565c0;
+}
+.btn-secondary {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    padding: 10px 20px;
+}
+.btn-secondary:hover {
+    background-color: #b6d0fa;
+}
+.btn-success {
+    background-color: var(--success);
+    color: white;
+    padding: 10px 20px;
+}
+.btn-success:hover {
+    background-color: #1b5e20;
+}
+.btn-large {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+    border-radius: var(--radius-md);
+}
+.btn-icon {
+    background: transparent;
+    color: inherit;
+    padding: 8px;
+    border-radius: 50%;
+}
+.btn-icon:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Ripple Effect */
+.ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Home View */
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 2rem;
+    text-align: center;
+}
+.logo-large {
+    max-width: 250px;
+    margin-bottom: 2rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+}
+.branch-buttons {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Login View */
+#view-login {
+    display: none; /* Managed by JS */
+    align-items: center;
+    justify-content: center;
+    background-color: var(--md-sys-color-primary-container);
+}
+#view-login.active {
+    display: flex;
+}
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+}
+.back-btn {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+}
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.logo-small {
+    max-width: 100px;
+    margin-bottom: 1rem;
+    border-radius: 50%;
+}
+.input-group {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+.input-group label {
+    margin-bottom: 0.5rem;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 0.9rem;
+}
+.input-group input {
+    padding: 12px;
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+.input-group input:focus {
+    outline: none;
+    border-color: var(--md-sys-color-primary);
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+/* App Layout */
+.layout-app {
+    display: flex;
+    flex-direction: column;
+}
+.navbar {
+    height: 64px;
+    background-color: var(--md-sys-color-surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.logo-nav {
+    height: 40px;
+    border-radius: 4px;
+}
+.branch-badge {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+.user-info {
+    font-weight: 500;
+}
+
+.main-body {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 64px);
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: var(--md-sys-color-surface);
+    border-right: 1px solid rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    z-index: 90;
+}
+.nav-links {
+    list-style: none;
+    padding: 1rem 0;
+}
+.nav-links li {
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface-variant);
+    transition: background-color 0.2s, color 0.2s;
+}
+.nav-links li:hover {
+    background-color: rgba(0,0,0,0.04);
+}
+.nav-links li.active {
+    background-color: var(--md-sys-color-primary-container);
+    color: var(--md-sys-color-on-primary-container);
+    font-weight: 500;
+}
+.nav-links li.admin-only {
+    display: none; /* Shown via JS if admin */
+}
+
+/* Content Area */
+.content-area {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    background-color: var(--md-sys-color-background);
+}
+
+/* POS Module */
+.pos-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    height: 100%;
+}
+.pos-products {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+}
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #f1f3f4;
+    border-radius: var(--radius-full);
+    padding: 8px 16px;
+    margin: 1rem 0;
+}
+.search-bar input {
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 8px;
+    width: 100%;
+    font-size: 1rem;
+}
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+.product-card {
+    border: 1px solid var(--md-sys-color-outline);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.product-card:hover {
+    border-color: var(--md-sys-color-primary);
+    box-shadow: var(--shadow-1);
+}
+.product-name {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+.product-price {
+    color: var(--md-sys-color-secondary);
+    font-weight: 700;
+}
+
+.pos-cart {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+}
+.cart-items {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 1rem;
+}
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+.cart-item-info {
+    flex: 1;
+}
+.cart-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cart-summary {
+    border-top: 2px solid #eee;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* Reports Module */
+.reports-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.export-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
+.date-pickers {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--md-sys-color-on-surface-variant);
+}
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Tables */
+.table-responsive {
+    overflow-x: auto;
+}
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.data-table th, .data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+.data-table th {
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface-variant);
+    background-color: #fafafa;
+}
+.data-table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Inventory Module */
+.inventory-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .pos-layout {
+        grid-template-columns: 1fr;
+    }
+    .pos-products, .pos-cart {
+        height: auto;
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hide-desktop {
+        display: block;
+    }
+    .sidebar {
+        position: absolute;
+        height: calc(100vh - 64px);
+        transform: translateX(-100%);
+        box-shadow: var(--shadow-2);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    .branch-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    .branch-buttons button {
+        width: 100%;
+    }
+    .reports-header {
+        flex-direction: column;
+    }
+}
+
+@media (min-width: 769px) {
+    .hide-desktop {
+        display: none;
+    }
+}
+
+</style>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <!-- APP CONTAINER -->
+    <div id="app-container">
+
+        <!-- VIEW: HOME (Branch Selection) -->
+        <section id="view-home" class="view active">
+            <div class="home-container">
+                <img src="logo.jpg.jpeg" alt="Logo" class="logo-large">
+                <h1>Seleccione Sucursal</h1>
+                <div class="branch-buttons">
+                    <button class="btn-primary btn-large ripple" onclick="app.selectBranch('norte')">
+                        <span class="material-icons-outlined">storefront</span>
+                        Pudahuel Norte
+                    </button>
+                    <button class="btn-primary btn-large ripple" onclick="app.selectBranch('sur')">
+                        <span class="material-icons-outlined">store</span>
+                        Pudahuel Sur
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: MAIN MENU (Module Selection) -->
+        <section id="view-menu" class="view">
+            <div class="home-container">
+                <button class="btn-icon back-btn-absolute" onclick="app.goHome()" style="position: absolute; top: 1rem; left: 1rem;">
+                    <span class="material-icons-outlined">arrow_back</span>
+                </button>
+                <img src="logo.jpg.jpeg" alt="Logo" class="logo-large" style="max-width: 150px;">
+                <h1 id="menu-title">Menú Principal</h1>
+                <p style="color: #666; margin-bottom: 2rem;">Seleccione el módulo al que desea ingresar</p>
+                <div class="branch-buttons" style="flex-direction: column; width: 100%; max-width: 400px; gap: 1rem;">
+                    <button class="btn-success btn-large ripple w-100" onclick="app.selectModule('pos')">
+                        <span class="material-icons-outlined">point_of_sale</span>
+                        Caja Registradora
+                    </button>
+                    <button class="btn-primary btn-large ripple w-100" onclick="app.selectModule('ventas')">
+                        <span class="material-icons-outlined">bar_chart</span>
+                        Ventas
+                    </button>
+                    <button class="btn-secondary btn-large ripple w-100" onclick="app.selectModule('logistica')">
+                        <span class="material-icons-outlined">inventory_2</span>
+                        Logística
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: LOGIN -->
+        <section id="view-login" class="view">
+            <div class="login-container card shadow-2">
+                <button class="btn-icon back-btn" onclick="app.showView('view-menu')">
+                    <span class="material-icons-outlined">arrow_back</span>
+                </button>
+                <div class="login-header">
+                    <img src="logo.jpg.jpeg" alt="Logo" class="logo-small">
+                    <h2 id="login-title">Ingreso</h2>
+                </div>
+                <form id="login-form" onsubmit="auth.handleLogin(event)">
+                    <div class="input-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <div id="login-error" class="error-msg"></div>
+                    <button type="submit" class="btn-primary ripple w-100">Ingresar</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- MAIN APP LAYOUT (For logged-in users inside a module) -->
+        <section id="view-main" class="view layout-app">
+            
+            <!-- Navbar -->
+            <nav class="navbar shadow-1">
+                <div class="nav-left">
+                    <button class="btn-icon" onclick="auth.logoutAndGoMenu()" title="Volver al Menú" style="background-color: var(--md-sys-color-primary-container);">
+                        <span class="material-icons-outlined">apps</span>
+                    </button>
+                    <img src="logo.jpg.jpeg" alt="Logo" class="logo-nav">
+                    <span id="current-branch-display" class="branch-badge hide-mobile">Sucursal</span>
+                </div>
+                <div class="nav-right">
+                    <span id="current-user-display" class="user-info">Usuario</span>
+                    <button class="btn-icon" onclick="auth.logout()" title="Cerrar Sesión y salir">
+                        <span class="material-icons-outlined">logout</span>
+                    </button>
+                </div>
+            </nav>
+
+            <div class="main-body">
+                <!-- Content Area (No sidebar anymore) -->
+                <main class="content-area w-100" style="width: 100%;">
+                    
+                    <!-- MODULE: POS (Caja Registradora) -->
+                    <div id="module-pos" class="module">
+                        <div class="pos-layout">
+                            <div class="pos-products card shadow-1">
+                                <h3>Productos</h3>
+                                <div class="search-bar">
+                                    <span class="material-icons-outlined">search</span>
+                                    <input type="text" id="pos-search" placeholder="Buscar producto..." onkeyup="pos.filterProducts()">
+                                </div>
+                                <div id="pos-product-list" class="product-grid">
+                                    <!-- Products injected by JS -->
+                                </div>
+                            </div>
+                            <div class="pos-cart card shadow-1">
+                                <h3>Venta Actual</h3>
+                                <div id="pos-cart-items" class="cart-items">
+                                    <!-- Cart items injected by JS -->
+                                </div>
+                                <div class="cart-summary">
+                                    <div class="summary-row total">
+                                        <span>Total:</span>
+                                        <span id="pos-total">$0</span>
+                                    </div>
+                                    <button class="btn-success ripple w-100 btn-large" onclick="pos.checkout()">
+                                        <span class="material-icons-outlined">shopping_cart_checkout</span>
+                                        Completar Venta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODULE: VENTAS (Reports) -->
+                    <div id="module-ventas" class="module">
+                        <div class="reports-header">
+                            <h2>Dashboard de Ventas</h2>
+                            <div class="export-controls card">
+                                <h4>Exportar a Excel</h4>
+                                <div class="date-pickers">
+                                    <div class="input-group">
+                                        <label>Desde:</label>
+                                        <input type="date" id="export-start">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Hasta:</label>
+                                        <input type="date" id="export-end">
+                                    </div>
+                                    <button class="btn-primary ripple" onclick="reports.exportToExcel()">Descargar</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-blue"><span class="material-icons-outlined">today</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Ventas Hoy</span>
+                                    <span id="stat-daily" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-green"><span class="material-icons-outlined">view_week</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Esta Semana</span>
+                                    <span id="stat-weekly" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-orange"><span class="material-icons-outlined">calendar_month</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Este Mes</span>
+                                    <span id="stat-monthly" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card shadow-1 card">
+                                <div class="stat-icon bg-purple"><span class="material-icons-outlined">calendar_today</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Este Año</span>
+                                    <span id="stat-yearly" class="stat-value">$0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="recent-sales card shadow-1">
+                            <h3>Registro de Ventas</h3>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha/Hora</th>
+                                            <th>Sucursal</th>
+                                            <th>Vendedor</th>
+                                            <th>Items</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sales-table-body">
+                                        <!-- Injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODULE: LOGISTICA (Inventory) -->
+                    <div id="module-logistica" class="module">
+                        <div class="inventory-header">
+                            <h2>Logística y Mercadería</h2>
+                            <button class="btn-secondary ripple" onclick="inventory.loadCSV()">
+                                <span class="material-icons-outlined">refresh</span> Recargar Base de Datos
+                            </button>
+                        </div>
+                        <div class="card shadow-1">
+                            <div class="search-bar" style="margin-bottom: 1rem;">
+                                <span class="material-icons-outlined">search</span>
+                                <input type="text" id="inv-search" placeholder="Buscar producto en bodega..." onkeyup="inventory.filterTable()">
+                            </div>
+                            <div class="table-responsive">
+                                <table id="inventory-table" class="data-table">
+                                    <thead>
+                                        <tr id="inv-table-head">
+                                            <!-- Headers injected by JS -->
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inv-table-body">
+                                        <!-- Rows injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+// auth.js - Authentication Logic
+
+const auth = {
+    users: {
+        'distribuidora': { password: '123456', role: 'cashier' },
+        'laguna': { password: '654321', role: 'admin' }
+    },
+
+    handleLogin(event) {
+        event.preventDefault();
+        const usernameInput = document.getElementById('username').value.trim().toLowerCase();
+        const passwordInput = document.getElementById('password').value;
+        const errorMsg = document.getElementById('login-error');
+
+        const user = this.users[usernameInput];
+
+        if (user && user.password === passwordInput) {
+            
+            // Check permissions based on target module
+            const target = app.state.targetModule;
+            
+            if ((target === 'ventas' || target === 'logistica') && user.role !== 'admin') {
+                errorMsg.innerText = 'Acceso denegado. Se requiere clave de administrador.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Success
+            errorMsg.style.display = 'none';
+            app.state.user = {
+                username: usernameInput,
+                role: user.role
+            };
+            
+            // Clear forms
+            document.getElementById('login-form').reset();
+
+            // Proceed to app
+            app.showApp();
+        } else {
+            // Failed
+            errorMsg.innerText = 'Usuario o contraseña incorrectos.';
+            errorMsg.style.display = 'block';
+        }
+    },
+
+    logoutAndGoMenu() {
+        app.state.user = null;
+        
+        // Clear pos cart
+        pos.cart = [];
+        pos.renderCart();
+        
+        app.showView('view-menu');
+    },
+
+    logout() {
+        app.state.user = null;
+        app.state.branch = null;
+        app.state.targetModule = null;
+        
+        // Clear pos cart
+        pos.cart = [];
+        pos.renderCart();
+        
+        app.showView('view-home');
+    }
+};
+
+</script>
+    <script>
+// inventory.js - Inventory Management
+
+const inventory = {
+    data: [],
+
+    init() {
+        // Attempt to load from localStorage first if we already parsed it
+        const saved = localStorage.getItem('pos_inventory');
+        if (saved) {
+            this.data = JSON.parse(saved);
+            this.renderTable();
+        }
+    },
+
+    
+    loadCSV() {
+        const t = new Date().getTime(); const filesToTry = ['inventario_limpio.csv?t='+t, 'inventario_limpio?t='+t, 'inventariobien.csv?t='+t, 'inventariobien?t='+t, 'inventario.csv?t='+t, 'inventario.csv.csv?t='+t, 'inventario a&e.csv?t='+t, 'inventario%20a%26e.csv?t='+t];
+        let currentIndex = 0;
+
+        const tryNextFile = () => {
+            if (currentIndex >= filesToTry.length) {
+                console.error('No se pudo cargar el inventario.');
+                alert('Error al cargar el inventario. Asegurese de que el archivo CSV este subido a GitHub.');
+                return;
+            }
+
+            const currentFile = filesToTry[currentIndex];
+            Papa.parse(currentFile, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    this.data = results.data.map(row => {
+                        const cleanRow = {};
+                        for (let key in row) {
+                            cleanRow[key.trim()] = row[key].trim();
+                        }
+                        if (!cleanRow['CODIGO']) cleanRow['CODIGO'] = 'GEN-' + Math.random().toString(36).substr(2, 9);
+                        if (cleanRow['PRECIO POR CAJA']) {
+                            let priceStr = cleanRow['PRECIO POR CAJA'].replace('$', '').replace(/\./g, '').trim();
+                            cleanRow['PRICE_NUM'] = parseInt(priceStr) || 0;
+                        } else {
+                            cleanRow['PRICE_NUM'] = 0;
+                        }
+                        return cleanRow;
+                    });
+                    localStorage.setItem('pos_inventory', JSON.stringify(this.data));
+                    this.renderTable();
+                    if (window.pos) pos.renderProducts();
+                },
+                error: (err) => {
+                    console.log('Fallo al cargar', currentFile, 'intentando el siguiente...');
+                    currentIndex++;
+                    tryNextFile();
+                }
+            });
+        };
+
+        tryNextFile();
+    },
+
+
+    renderTable() {
+        const thead = document.getElementById('inv-table-head');
+        const tbody = document.getElementById('inv-table-body');
+        
+        if (!thead || !tbody) return;
+
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+
+        if (this.data.length === 0) return;
+
+        // Headers
+        const headers = ['CODIGO', 'DESCRIPCION', 'MARCA', 'UNIDADES POR CAJA', 'PRECIO POR CAJA', 'STOCK CAJA'];
+        headers.forEach(h => {
+            const th = document.createElement('th');
+            th.innerText = h;
+            thead.appendChild(th);
+        });
+
+        // Rows
+        this.data.forEach(item => {
+            const tr = document.createElement('tr');
+            headers.forEach(h => {
+                const td = document.createElement('td');
+                td.innerText = item[h] || '';
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+    },
+
+    filterTable() {
+        const term = document.getElementById('inv-search').value.toLowerCase();
+        const rows = document.querySelectorAll('#inv-table-body tr');
+        
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(term) ? '' : 'none';
+        });
+    }
+};
+
+</script>
+    <script>
+// pos.js - Cash Register Logic
+
+const pos = {
+    cart: [],
+    
+    renderProducts() {
+        const list = document.getElementById('pos-product-list');
+        if (!list) return;
+
+        list.innerHTML = '';
+
+        // Display products from inventory
+        inventory.data.forEach(item => {
+            // Skip items without a description or price
+            if (!item.DESCRIPCION) return;
+
+            const card = document.createElement('div');
+            card.className = 'product-card ripple';
+            card.onclick = () => this.addToCart(item);
+
+            const name = document.createElement('div');
+            name.className = 'product-name';
+            name.innerText = item.DESCRIPCION;
+
+            const price = document.createElement('div');
+            price.className = 'product-price';
+            price.innerText = `$${item.PRICE_NUM.toLocaleString('es-CL')}`;
+
+            card.appendChild(name);
+            card.appendChild(price);
+            list.appendChild(card);
+        });
+    },
+
+    filterProducts() {
+        const term = document.getElementById('pos-search').value.toLowerCase();
+        const cards = document.querySelectorAll('.product-card');
+        
+        cards.forEach(card => {
+            const name = card.querySelector('.product-name').innerText.toLowerCase();
+            card.style.display = name.includes(term) ? '' : 'none';
+        });
+    },
+
+    addToCart(item) {
+        // Check if already in cart
+        const existing = this.cart.find(c => c.codigo === item.CODIGO);
+        if (existing) {
+            existing.qty += 1;
+        } else {
+            this.cart.push({
+                codigo: item.CODIGO,
+                name: item.DESCRIPCION,
+                price: item.PRICE_NUM,
+                qty: 1
+            });
+        }
+        this.renderCart();
+    },
+
+    removeFromCart(index) {
+        this.cart.splice(index, 1);
+        this.renderCart();
+    },
+
+    updateQty(index, change) {
+        this.cart[index].qty += change;
+        if (this.cart[index].qty <= 0) {
+            this.removeFromCart(index);
+        } else {
+            this.renderCart();
+        }
+    },
+
+    renderCart() {
+        const list = document.getElementById('pos-cart-items');
+        if (!list) return;
+
+        list.innerHTML = '';
+        let total = 0;
+
+        this.cart.forEach((item, index) => {
+            const itemTotal = item.price * item.qty;
+            total += itemTotal;
+
+            const div = document.createElement('div');
+            div.className = 'cart-item';
+            
+            div.innerHTML = `
+                <div class="cart-item-info">
+                    <div><strong>${item.name}</strong></div>
+                    <div style="color: #666; font-size: 0.85rem;">$${item.price.toLocaleString('es-CL')} c/u</div>
+                </div>
+                <div class="cart-item-actions">
+                    <button class="btn-icon" onclick="pos.updateQty(${index}, -1)"><span class="material-icons-outlined">remove</span></button>
+                    <span>${item.qty}</span>
+                    <button class="btn-icon" onclick="pos.updateQty(${index}, 1)"><span class="material-icons-outlined">add</span></button>
+                    <span style="font-weight: bold; width: 70px; text-align: right;">$${itemTotal.toLocaleString('es-CL')}</span>
+                    <button class="btn-icon" onclick="pos.removeFromCart(${index})" style="color: var(--md-sys-color-error)"><span class="material-icons-outlined">delete</span></button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+
+        document.getElementById('pos-total').innerText = `$${total.toLocaleString('es-CL')}`;
+    },
+
+    checkout() {
+        if (this.cart.length === 0) {
+            alert('El carrito está vacío');
+            return;
+        }
+
+        const total = this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        
+        // Create sale record
+        const sale = {
+            id: Date.now(),
+            date: new Date().toISOString(),
+            branch: app.state.branch,
+            user: app.state.user.username,
+            items: [...this.cart],
+            total: total
+        };
+
+        // Save to reports
+        reports.addSale(sale);
+
+        // Clear cart
+        this.cart = [];
+        this.renderCart();
+
+        alert(`Venta completada exitosamente. Total: $${total.toLocaleString('es-CL')}`);
+    }
+};
+
+</script>
+    <script>
+// reports.js - Reports and Dashboard Logic
+
+const reports = {
+    sales: [],
+
+    init() {
+        const saved = localStorage.getItem('pos_sales');
+        if (saved) {
+            this.sales = JSON.parse(saved);
+        }
+    },
+
+    addSale(sale) {
+        this.sales.push(sale);
+        localStorage.setItem('pos_sales', JSON.stringify(this.sales));
+        // Update dashboard if active
+        if (app.state.user && app.state.user.role === 'admin') {
+            this.updateDashboard();
+        }
+    },
+
+    updateDashboard() {
+        this.calculateStats();
+        this.renderRecentSales();
+    },
+
+    calculateStats() {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        
+        const dayOfWeek = now.getDay(); // 0 is Sunday
+        const startOfWeek = new Date(startOfDay - (dayOfWeek * 24 * 60 * 60 * 1000)).getTime();
+        
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        const startOfYear = new Date(now.getFullYear(), 0, 1).getTime();
+
+        let daily = 0, weekly = 0, monthly = 0, yearly = 0;
+
+        this.sales.forEach(sale => {
+            const saleTime = new Date(sale.date).getTime();
+            
+            if (saleTime >= startOfYear) yearly += sale.total;
+            if (saleTime >= startOfMonth) monthly += sale.total;
+            if (saleTime >= startOfWeek) weekly += sale.total;
+            if (saleTime >= startOfDay) daily += sale.total;
+        });
+
+        const f = (val) => `$${val.toLocaleString('es-CL')}`;
+
+        if(document.getElementById('stat-daily')) document.getElementById('stat-daily').innerText = f(daily);
+        if(document.getElementById('stat-weekly')) document.getElementById('stat-weekly').innerText = f(weekly);
+        if(document.getElementById('stat-monthly')) document.getElementById('stat-monthly').innerText = f(monthly);
+        if(document.getElementById('stat-yearly')) document.getElementById('stat-yearly').innerText = f(yearly);
+    },
+
+    renderRecentSales() {
+        const tbody = document.getElementById('sales-table-body');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        
+        // Show last 50 sales, reversed
+        const recent = [...this.sales].reverse().slice(0, 50);
+
+        recent.forEach(sale => {
+            const tr = document.createElement('tr');
+            
+            const date = new Date(sale.date).toLocaleString('es-CL');
+            const itemsCount = sale.items.reduce((sum, item) => sum + item.qty, 0);
+
+            tr.innerHTML = `
+                <td>${date}</td>
+                <td style="text-transform: capitalize;">${sale.branch}</td>
+                <td>${sale.user}</td>
+                <td>${itemsCount}</td>
+                <td style="font-weight: bold;">$${sale.total.toLocaleString('es-CL')}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    },
+
+    exportToExcel() {
+        const startInput = document.getElementById('export-start').value;
+        const endInput = document.getElementById('export-end').value;
+
+        let filteredSales = this.sales;
+
+        if (startInput || endInput) {
+            const start = startInput ? new Date(startInput).getTime() : 0;
+            // Set end to end of day
+            const end = endInput ? new Date(endInput + 'T23:59:59').getTime() : Infinity;
+
+            filteredSales = this.sales.filter(s => {
+                const t = new Date(s.date).getTime();
+                return t >= start && t <= end;
+            });
+        }
+
+        if (filteredSales.length === 0) {
+            alert('No hay ventas en el rango seleccionado.');
+            return;
+        }
+
+        // Prepare data for Excel
+        const data = filteredSales.map(sale => ({
+            'ID Venta': sale.id,
+            'Fecha': new Date(sale.date).toLocaleDateString('es-CL'),
+            'Hora': new Date(sale.date).toLocaleTimeString('es-CL'),
+            'Sucursal': sale.branch,
+            'Vendedor': sale.user,
+            'Total Venta': sale.total,
+            'Detalle Items (Cant x Nombre)': sale.items.map(i => `${i.qty}x ${i.name}`).join(' | ')
+        }));
+
+        // Create workbook and worksheet
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Ventas");
+
+        // Generate filename
+        const filename = `Reporte_Ventas_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+        // Download
+        XLSX.writeFile(wb, filename);
+    }
+};
+
+</script>
+    <script>
+// app.js - Main Application Controller
+
+const app = {
+    state: {
+        branch: null, // 'norte' or 'sur'
+        user: null,   // { role: 'cashier'|'admin', username: string }
+        targetModule: null // 'pos', 'ventas', 'logistica'
+    },
+
+    init() {
+        // Initialize modules
+        inventory.init();
+        reports.init();
+        this.showView('view-home');
+    },
+
+    selectBranch(branchId) {
+        this.state.branch = branchId;
+        localStorage.setItem('pos_branch', branchId);
+        
+        // Show main menu view
+        this.showView('view-menu');
+    },
+
+    goHome() {
+        this.state.branch = null;
+        localStorage.removeItem('pos_branch');
+        this.showView('view-home');
+    },
+
+    selectModule(moduleId) {
+        this.state.targetModule = moduleId;
+        
+        // Update login title
+        let moduleName = '';
+        if(moduleId === 'pos') moduleName = 'Caja Registradora';
+        if(moduleId === 'ventas') moduleName = 'Ventas';
+        if(moduleId === 'logistica') moduleName = 'Logística';
+        
+        document.getElementById('login-title').innerText = `Ingreso a ${moduleName}`;
+        this.showView('view-login');
+    },
+
+    showApp() {
+        // Setup UI
+        document.getElementById('current-branch-display').innerText = `Pudahuel ${this.state.branch === 'norte' ? 'Norte' : 'Sur'}`;
+        document.getElementById('current-user-display').innerText = this.state.user.username;
+
+        this.showView('view-main');
+        
+        // Hide all modules
+        document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+        
+        // Show target module
+        document.getElementById(`module-${this.state.targetModule}`).classList.add('active');
+        
+        // Trigger module specific actions
+        if (this.state.targetModule === 'ventas') {
+            reports.updateDashboard();
+        }
+        if (this.state.targetModule === 'logistica' || this.state.targetModule === 'pos') {
+            inventory.loadCSV(); // load/refresh data
+        }
+    },
+
+    showView(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+    }
+};
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});
+
+</script>
+</body>
+</html>
