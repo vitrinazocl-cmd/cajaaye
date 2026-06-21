@@ -966,7 +966,7 @@ const inventory = {
                 <td>${item.MARCA}</td>
                 <td>${item['UNIDADES POR CAJA']}</td>
                 <td>$${item.PRICE_NUM.toLocaleString('es-CL')}</td>
-                <td style="${stockStyle}">${item['STOCK CAJA']}</td>
+                <td style="${stockStyle}">${Math.floor(stockVal)}</td>
             `;
             tbody.appendChild(tr);
         });
