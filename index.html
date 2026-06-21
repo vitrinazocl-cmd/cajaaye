@@ -889,7 +889,6 @@ const inventory = {
             Papa.parse(currentFile, {
                 download: true,
                 header: true,
-                delimiter: ';',
                 skipEmptyLines: true,
                 complete: (results) => {
                     this.data = results.data.map(row => {
