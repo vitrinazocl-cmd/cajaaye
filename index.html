@@ -354,10 +354,11 @@ button:active {
 }
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 1rem;
     overflow-y: auto;
     padding-right: 8px;
+    align-items: stretch;
 }
 .product-card {
     border: 1px solid var(--md-sys-color-outline);
@@ -366,19 +367,62 @@ button:active {
     text-align: center;
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+    min-height: 250px; /* Guarantee enough height for text */
+    overflow: visible;
 }
 .product-card:hover {
     border-color: var(--md-sys-color-primary);
     box-shadow: var(--shadow-1);
 }
+.product-image-container {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.product-image-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+.product-code {
+    font-size: 0.8rem;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-bottom: 0.2rem;
+}
 .product-name {
-    font-weight: 500;
+    font-weight: 700;
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
+    text-transform: uppercase;
+}
+.product-brand {
+    font-size: 0.8rem;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-bottom: 0.2rem;
+}
+.product-stock {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.product-stock.low-stock {
+    color: var(--md-sys-color-error);
+}
+.product-stock.normal-stock {
+    color: var(--md-sys-color-on-surface-variant);
 }
 .product-price {
     color: var(--md-sys-color-secondary);
     font-weight: 700;
+    font-size: 1.1rem;
 }
 
 .pos-cart {
@@ -765,17 +809,8 @@ button:active {
                                 <span class="material-icons-outlined">search</span>
                                 <input type="text" id="inv-search" placeholder="Buscar producto en bodega..." onkeyup="inventory.filterTable()">
                             </div>
-                            <div class="table-responsive">
-                                <table id="inventory-table" class="data-table">
-                                    <thead>
-                                        <tr id="inv-table-head">
-                                            <!-- Headers injected by JS -->
-                                        </tr>
-                                    </thead>
-                                    <tbody id="inv-table-body">
-                                        <!-- Rows injected by JS -->
-                                    </tbody>
-                                </table>
+                            <div id="inv-product-list" class="product-grid" style="padding: 1rem; height: calc(100vh - 250px);">
+                                <!-- Products injected by JS -->
                             </div>
                         </div>
                     </div>
