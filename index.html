@@ -919,7 +919,7 @@ const inventory = {
                     });
                     localStorage.setItem('pos_inventory', JSON.stringify(this.data));
                     this.renderTable();
-                    if (window.pos) pos.renderProducts();
+                    if (typeof pos !== 'undefined') pos.renderProducts();
                 },
                 error: (err) => {
                     console.log('Fallo al cargar', currentFile, 'intentando el siguiente...');
