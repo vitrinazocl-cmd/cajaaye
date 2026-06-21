@@ -1168,6 +1168,20 @@ const pos = {
         // Save to reports
         reports.addSale(sale);
 
+        // Deduct from inventory
+        this.cart.forEach(cartItem => {
+            const invItem = inventory.data.find(i => (i.CODIGO && i.CODIGO === cartItem.codigo) || (i.codigo && i.codigo === cartItem.codigo));
+            if (invItem) {
+                let stock = parseFloat(invItem['STOCK CAJA'] || invItem['stock'] || 0) || 0;
+                stock -= cartItem.qty;
+                invItem['STOCK CAJA'] = stock.toString();
+                if (invItem['stock']) invItem['stock'] = stock.toString();
+            }
+        });
+        localStorage.setItem('pos_inventory', JSON.stringify(inventory.data));
+        inventory.renderTable();
+        this.renderProducts();
+
         // Clear cart
         this.cart = [];
         this.renderCart();
@@ -1369,7 +1383,12 @@ const app = {
             reports.updateDashboard();
         }
         if (this.state.targetModule === 'logistica' || this.state.targetModule === 'pos') {
-            inventory.loadCSV(); // load/refresh data
+            if (inventory.data && inventory.data.length > 0) {
+                inventory.renderTable();
+                if (typeof pos !== 'undefined') pos.renderProducts();
+            } else {
+                inventory.loadCSV(); // load data initially
+            }
         }
     },
 
