@@ -800,9 +800,15 @@ button:active {
                     <div id="module-logistica" class="module">
                         <div class="inventory-header">
                             <h2>Logística y Mercadería</h2>
-                            <button class="btn-secondary ripple" onclick="inventory.loadCSV()">
-                                <span class="material-icons-outlined">refresh</span> Recargar Base de Datos
-                            </button>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn-secondary ripple" onclick="inventory.loadCSV(true)">
+                                    <span class="material-icons-outlined">refresh</span> Recargar Base de Datos
+                                </button>
+                                <input type="file" id="csv-upload" accept=".csv" style="display: none;" onchange="inventory.handleFileUpload(event)">
+                                <button class="btn-primary ripple" onclick="document.getElementById('csv-upload').click()">
+                                    <span class="material-icons-outlined">upload_file</span> Cargar Manual
+                                </button>
+                            </div>
                         </div>
                         <div class="card shadow-1">
                             <div class="search-bar" style="margin-bottom: 1rem;">
@@ -910,6 +916,49 @@ const inventory = {
         }
     },
 
+    processCSVData(results) {
+        this.data = results.data.map(row => {
+            const cleanRow = {};
+            for (let key in row) {
+                cleanRow[key.trim().toLowerCase()] = row[key].trim();
+            }
+            
+            const item = {
+                CODIGO: cleanRow['codigo'] || ('GEN-' + Math.random().toString(36).substr(2, 9)),
+                DESCRIPCION: cleanRow['descripcion'] || '',
+                MARCA: cleanRow['marca'] || '',
+                'UNIDADES POR CAJA': cleanRow['unidades_por_caja'] || cleanRow['unidades por caja'] || cleanRow['contenido'] || '',
+                PRICE_NUM: parseInt(String(cleanRow['precio_caja'] || cleanRow['precio caja'] || '0').replace(/[^0-9]/g, '')) || 0,
+                'STOCK CAJA': cleanRow['stock caja'] || cleanRow['stock'] || '0',
+                AROMAS: cleanRow['aromas'] || ''
+            };
+            return item;
+        }).filter(item => item.DESCRIPCION);
+
+        localStorage.setItem('pos_inventory', JSON.stringify(this.data));
+        this.renderTable();
+        if (typeof pos !== 'undefined') pos.renderProducts();
+    },
+
+    handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                this.processCSVData(results);
+                alert('Inventario cargado exitosamente desde archivo local.');
+                event.target.value = '';
+            },
+            error: (err) => {
+                console.error(err);
+                alert('Error al procesar el archivo CSV.');
+                event.target.value = '';
+            }
+        });
+    },
     
     loadCSV(force = false) {
         if (!force && this.data && this.data.length > 0) {
@@ -924,7 +973,6 @@ const inventory = {
         const tryNextFile = () => {
             if (currentIndex >= filesToTry.length) {
                 console.error('No se pudo cargar el inventario.');
-                alert('Error al cargar el inventario. Asegurese de que el archivo CSV este subido a GitHub.');
                 return;
             }
 
@@ -934,35 +982,7 @@ const inventory = {
                 header: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                    this.data = results.data.map(row => {
-                        const cleanRow = {};
-                        for (let key in row) {
-                            cleanRow[key.trim().toLowerCase()] = row[key].trim();
-                        }
-                        
-                        const item = {
-                            CODIGO: cleanRow['codigo'] || '',
-                            DESCRIPCION: cleanRow['descripcion'] || '',
-                            MARCA: cleanRow['marca'] || '',
-                            CONTENIDO: cleanRow['contenido'] || '',
-                            'UNIDADES POR CAJA': cleanRow['unidades_por_caja'] || cleanRow['unidades por caja'] || '',
-                            'PRECIO POR CAJA': cleanRow['precio_caja'] || cleanRow['precio por caja'] || '',
-                            'STOCK CAJA': cleanRow['stock'] || cleanRow['stock caja'] || '',
-                            AROMAS: cleanRow['aromas'] || ''
-                        };
-
-                        if (!item['CODIGO']) item['CODIGO'] = 'GEN-' + Math.random().toString(36).substr(2, 9);
-                        if (item['PRECIO POR CAJA']) {
-                            let priceStr = item['PRECIO POR CAJA'].replace('$', '').replace(/\./g, '').trim();
-                            item['PRICE_NUM'] = parseInt(priceStr) || 0;
-                        } else {
-                            item['PRICE_NUM'] = 0;
-                        }
-                        return item;
-                    });
-                    localStorage.setItem('pos_inventory', JSON.stringify(this.data));
-                    this.renderTable();
-                    if (typeof pos !== 'undefined') pos.renderProducts();
+                    this.processCSVData(results);
                 },
                 error: (err) => {
                     console.log('Fallo al cargar', currentFile, 'intentando el siguiente...');
@@ -974,7 +994,6 @@ const inventory = {
 
         tryNextFile();
     },
-
 
     renderTable() {
         const thead = document.getElementById('inv-table-head');
