@@ -800,21 +800,26 @@ button:active {
                     <div id="module-logistica" class="module">
                         <div class="inventory-header">
                             <h2>Logística y Mercadería</h2>
-                            <button class="btn-secondary ripple" onclick="inventory.loadCSV()">
-                                <span class="material-icons-outlined">refresh</span> Recargar Base de Datos
-                            </button>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn-secondary ripple" onclick="inventory.loadCSV(true)">
+                                    <span class="material-icons-outlined">refresh</span> Recargar Base de Datos
+                                </button>
+                                <input type="file" id="csv-upload" accept=".csv" style="display: none;" onchange="inventory.handleFileUpload(event)">
+                                <button class="btn-primary ripple" onclick="document.getElementById('csv-upload').click()">
+                                    <span class="material-icons-outlined">upload_file</span> Cargar Manual
+                                </button>
+                            </div>
                         </div>
                         <div class="card shadow-1">
                             <div class="search-bar" style="margin-bottom: 1rem;">
                                 <span class="material-icons-outlined">search</span>
                                 <input type="text" id="inv-search" placeholder="Buscar producto en bodega..." onkeyup="inventory.filterTable()">
                             </div>
-                            <div id="inv-product-list" class="product-grid" style="padding: 1rem; height: calc(100vh - 250px);">
+                            <div id="inv-product-list" style="display: flex; flex-direction: column; width: 100%; min-height: 500px; background: white; padding: 10px; overflow-y: auto;">
                                 <!-- Products injected by JS -->
                             </div>
                         </div>
                     </div>
-
                 </main>
             </div>
         </section>
@@ -908,15 +913,63 @@ const inventory = {
         }
     },
 
+    processCSVData(results) {
+        this.data = results.data.map(row => {
+            const cleanRow = {};
+            for (let key in row) {
+                cleanRow[key.trim().toLowerCase()] = row[key].trim();
+            }
+            
+            const item = {
+                CODIGO: cleanRow['codigo'] || ('GEN-' + Math.random().toString(36).substr(2, 9)),
+                DESCRIPCION: cleanRow['descripcion'] || '',
+                MARCA: cleanRow['marca'] || '',
+                'UNIDADES POR CAJA': cleanRow['unidades_por_caja'] || cleanRow['unidades por caja'] || cleanRow['contenido'] || '',
+                PRICE_NUM: parseInt(String(cleanRow['precio_caja'] || cleanRow['precio caja'] || '0').replace(/[^0-9]/g, '')) || 0,
+                'STOCK CAJA': cleanRow['stock caja'] || cleanRow['stock'] || '0',
+                AROMAS: cleanRow['aromas'] || ''
+            };
+            return item;
+        }).filter(item => item.DESCRIPCION);
+
+        localStorage.setItem('pos_inventory', JSON.stringify(this.data));
+        this.renderTable();
+        if (typeof pos !== 'undefined') pos.renderProducts();
+    },
+
+    handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                this.processCSVData(results);
+                alert('Inventario cargado exitosamente desde archivo local.');
+                event.target.value = '';
+            },
+            error: (err) => {
+                console.error(err);
+                alert('Error al procesar el archivo CSV.');
+                event.target.value = '';
+            }
+        });
+    },
     
-    loadCSV() {
-        const t = new Date().getTime(); const filesToTry = ['inventario_limpio.csv?t='+t, 'inventario_limpio?t='+t, 'inventariobien.csv?t='+t, 'inventariobien?t='+t, 'inventario.csv?t='+t, 'inventario.csv.csv?t='+t, 'inventario a&e.csv?t='+t, 'inventario%20a%26e.csv?t='+t];
+    loadCSV(force = false) {
+        if (!force && this.data && this.data.length > 0) {
+            this.renderTable();
+            if (typeof pos !== 'undefined') pos.renderProducts();
+            return;
+        }
+        
+        const filesToTry = ['inventario_limpio.csv', 'inventario_limpio', 'inventariobien.csv', 'inventariobien', 'inventario.csv', 'inventario.csv.csv', 'inventario a&e.csv', 'inventario%20a%26e.csv'];
         let currentIndex = 0;
 
         const tryNextFile = () => {
             if (currentIndex >= filesToTry.length) {
                 console.error('No se pudo cargar el inventario.');
-                alert('Error al cargar el inventario. Asegurese de que el archivo CSV este subido a GitHub.');
                 return;
             }
 
@@ -926,35 +979,7 @@ const inventory = {
                 header: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                    this.data = results.data.map(row => {
-                        const cleanRow = {};
-                        for (let key in row) {
-                            cleanRow[key.trim().toLowerCase()] = row[key].trim();
-                        }
-                        
-                        const item = {
-                            CODIGO: cleanRow['codigo'] || '',
-                            DESCRIPCION: cleanRow['descripcion'] || '',
-                            MARCA: cleanRow['marca'] || '',
-                            CONTENIDO: cleanRow['contenido'] || '',
-                            'UNIDADES POR CAJA': cleanRow['unidades_por_caja'] || cleanRow['unidades por caja'] || '',
-                            'PRECIO POR CAJA': cleanRow['precio_caja'] || cleanRow['precio por caja'] || '',
-                            'STOCK CAJA': cleanRow['stock'] || cleanRow['stock caja'] || '',
-                            AROMAS: cleanRow['aromas'] || ''
-                        };
-
-                        if (!item['CODIGO']) item['CODIGO'] = 'GEN-' + Math.random().toString(36).substr(2, 9);
-                        if (item['PRECIO POR CAJA']) {
-                            let priceStr = item['PRECIO POR CAJA'].replace('$', '').replace(/\./g, '').trim();
-                            item['PRICE_NUM'] = parseInt(priceStr) || 0;
-                        } else {
-                            item['PRICE_NUM'] = 0;
-                        }
-                        return item;
-                    });
-                    localStorage.setItem('pos_inventory', JSON.stringify(this.data));
-                    this.renderTable();
-                    if (typeof pos !== 'undefined') pos.renderProducts();
+                    this.processCSVData(results);
                 },
                 error: (err) => {
                     console.log('Fallo al cargar', currentFile, 'intentando el siguiente...');
@@ -967,53 +992,72 @@ const inventory = {
         tryNextFile();
     },
 
-
     renderTable() {
-        const thead = document.getElementById('inv-table-head');
-        const tbody = document.getElementById('inv-table-body');
-        
-        if (!thead || !tbody) return;
+        const list = document.getElementById('inv-product-list');
+        if (!list) return;
 
-        thead.innerHTML = '';
-        tbody.innerHTML = '';
-
+        list.innerHTML = '';
         if (this.data.length === 0) return;
 
-        // Headers
-        const headers = ['IMAGEN', 'CODIGO', 'DESCRIPCION', 'MARCA', 'UNIDADES POR CAJA', 'PRECIO POR CAJA', 'STOCK CAJA'];
-        headers.forEach(h => {
-            const th = document.createElement('th');
-            th.innerText = h;
-            thead.appendChild(th);
+        // Add Header Row
+        const headerRow = document.createElement('div');
+        headerRow.style.cssText = "display: grid; grid-template-columns: 80px 100px 2fr 1fr 1fr 1fr 1fr; gap: 10px; font-weight: bold; background: #eee; padding: 10px; border-radius: 4px; margin-bottom: 10px;";
+        headerRow.innerHTML = `
+            <div>IMAGEN</div>
+            <div>CODIGO</div>
+            <div>DESCRIPCION</div>
+            <div>MARCA</div>
+            <div>UNIDADES X CAJA</div>
+            <div>PRECIO CAJA</div>
+            <div>STOCK CAJA</div>
+        `;
+        list.appendChild(headerRow);
+
+        let count = 0;
+        this.data.forEach(item => {
+            try {
+                if (!item.DESCRIPCION) return;
+
+                const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
+                const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
+                const stockVal = parseFloat(item['STOCK CAJA']) || 0;
+                const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
+                const priceNum = item.PRICE_NUM || 0;
+
+                const row = document.createElement('div');
+                row.className = 'inv-list-row';
+                row.style.cssText = "display: grid; grid-template-columns: 80px 100px 2fr 1fr 1fr 1fr 1fr; gap: 10px; padding: 10px; border-bottom: 1px solid #ddd; align-items: center;";
+                
+                row.innerHTML = `
+                    <div><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></div>
+                    <div>${item.CODIGO || ''}</div>
+                    <div style="font-weight: 500;">${item.DESCRIPCION}</div>
+                    <div>${item.MARCA || ''}</div>
+                    <div>${item['UNIDADES POR CAJA'] || ''}</div>
+                    <div>$${priceNum.toLocaleString('es-CL')}</div>
+                    <div style="${stockStyle}">${Math.floor(stockVal)}</div>
+                `;
+                list.appendChild(row);
+                count++;
+            } catch (e) {
+                console.error(e);
+            }
         });
 
-        // Rows
-        this.data.forEach(item => {
-            const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
-            const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
-            const stockVal = parseFloat(item['STOCK CAJA']) || 0;
-            const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></td>
-                <td>${item.CODIGO}</td>
-                <td>${item.DESCRIPCION}</td>
-                <td>${item.MARCA}</td>
-                <td>${item['UNIDADES POR CAJA']}</td>
-                <td>$${item.PRICE_NUM.toLocaleString('es-CL')}</td>
-                <td style="${stockStyle}">${Math.floor(stockVal)}</td>
-            `;
-            tbody.appendChild(tr);
-        });
+        // Debug visual
+        const searchInput = document.getElementById('inv-search');
+        if (searchInput) {
+            searchInput.placeholder = `Se cargaron ${count} productos...`;
+        }
     },
 
     filterTable() {
         const term = document.getElementById('inv-search').value.toLowerCase();
-        const rows = document.querySelectorAll('#inv-table-body tr');
+        const rows = document.querySelectorAll('.inv-list-row');
         
         rows.forEach(row => {
             const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(term) ? '' : 'none';
+            row.style.display = text.includes(term) ? 'grid' : 'none';
         });
     }
 };
@@ -1153,6 +1197,20 @@ const pos = {
 
         // Save to reports
         reports.addSale(sale);
+
+        // Deduct from inventory
+        this.cart.forEach(cartItem => {
+            const invItem = inventory.data.find(i => (i.CODIGO && i.CODIGO === cartItem.codigo) || (i.codigo && i.codigo === cartItem.codigo));
+            if (invItem) {
+                let stock = parseFloat(invItem['STOCK CAJA'] || invItem['stock'] || 0) || 0;
+                stock -= cartItem.qty;
+                invItem['STOCK CAJA'] = stock.toString();
+                if (invItem['stock']) invItem['stock'] = stock.toString();
+            }
+        });
+        localStorage.setItem('pos_inventory', JSON.stringify(inventory.data));
+        inventory.renderTable();
+        this.renderProducts();
 
         // Clear cart
         this.cart = [];
@@ -1355,7 +1413,12 @@ const app = {
             reports.updateDashboard();
         }
         if (this.state.targetModule === 'logistica' || this.state.targetModule === 'pos') {
-            inventory.loadCSV(); // load/refresh data
+            if (inventory.data && inventory.data.length > 0) {
+                inventory.renderTable();
+                if (typeof pos !== 'undefined') pos.renderProducts();
+            } else {
+                inventory.loadCSV(); // load data initially
+            }
         }
     },
 
