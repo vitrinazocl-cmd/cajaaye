@@ -800,52 +800,25 @@ button:active {
                     <div id="module-logistica" class="module">
                         <div class="inventory-header">
                             <h2>Logística y Mercadería</h2>
-                            <div style="display: flex; gap: 10px;">
-                                <button class="btn-primary ripple" onclick="document.getElementById('add-product-modal').style.display='flex'">
-                                    <span class="material-icons-outlined">add</span> Agregar Producto
-                                </button>
-                                <button class="btn-secondary ripple" onclick="inventory.loadCSV(true)">
-                                    <span class="material-icons-outlined">refresh</span> Recargar Base de Datos
-                                </button>
-                                <input type="file" id="csv-upload" accept=".csv" style="display: none;" onchange="inventory.handleFileUpload(event)">
-                                <button class="btn-primary ripple" onclick="document.getElementById('csv-upload').click()">
-                                    <span class="material-icons-outlined">upload_file</span> Cargar Manual
-                                </button>
-                            </div>
+                            <button class="btn-secondary ripple" onclick="inventory.loadCSV()">
+                                <span class="material-icons-outlined">refresh</span> Recargar Base de Datos
+                            </button>
                         </div>
                         <div class="card shadow-1">
                             <div class="search-bar" style="margin-bottom: 1rem;">
                                 <span class="material-icons-outlined">search</span>
                                 <input type="text" id="inv-search" placeholder="Buscar producto en bodega..." onkeyup="inventory.filterTable()">
                             </div>
-                            <div id="inv-product-list" style="display: flex; flex-direction: column; width: 100%; min-height: 500px; background: white; padding: 10px; overflow-y: auto;">
+                            <div id="inv-product-list" class="product-grid" style="padding: 1rem; height: calc(100vh - 250px);">
                                 <!-- Products injected by JS -->
                             </div>
                         </div>
                     </div>
+
                 </main>
             </div>
         </section>
 
-    </div>
-
-    <!-- Add Product Modal -->
-    <div id="add-product-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-        <div style="background: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <h3 style="margin-top: 0;">Agregar Nuevo Producto</h3>
-            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
-                <input type="text" id="new-prod-codigo" placeholder="Código (Dejar vacío para auto-generar)" style="padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                <input type="text" id="new-prod-desc" placeholder="Descripción" style="padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                <input type="text" id="new-prod-marca" placeholder="Marca" style="padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                <input type="number" id="new-prod-unidades" placeholder="Unidades por Caja" style="padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                <input type="number" id="new-prod-precio" placeholder="Precio Caja" style="padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                <input type="number" id="new-prod-stock" placeholder="Stock Caja" style="padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                <button class="btn-secondary ripple" onclick="document.getElementById('add-product-modal').style.display='none'">Cancelar</button>
-                <button class="btn-primary ripple" onclick="inventory.addProduct()">Guardar</button>
-            </div>
-        </div>
     </div>
 
     <!-- Scripts -->
@@ -935,63 +908,15 @@ const inventory = {
         }
     },
 
-    processCSVData(results) {
-        this.data = results.data.map(row => {
-            const cleanRow = {};
-            for (let key in row) {
-                cleanRow[key.trim().toLowerCase()] = row[key].trim();
-            }
-            
-            const item = {
-                CODIGO: cleanRow['codigo'] || ('GEN-' + Math.random().toString(36).substr(2, 9)),
-                DESCRIPCION: cleanRow['descripcion'] || '',
-                MARCA: cleanRow['marca'] || '',
-                'UNIDADES POR CAJA': cleanRow['unidades_por_caja'] || cleanRow['unidades por caja'] || cleanRow['contenido'] || '',
-                PRICE_NUM: parseInt(String(cleanRow['precio_caja'] || cleanRow['precio caja'] || '0').replace(/[^0-9]/g, '')) || 0,
-                'STOCK CAJA': cleanRow['stock caja'] || cleanRow['stock'] || '0',
-                AROMAS: cleanRow['aromas'] || ''
-            };
-            return item;
-        }).filter(item => item.DESCRIPCION);
-
-        localStorage.setItem('pos_inventory', JSON.stringify(this.data));
-        this.renderTable();
-        if (typeof pos !== 'undefined') pos.renderProducts();
-    },
-
-    handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: (results) => {
-                this.processCSVData(results);
-                alert('Inventario cargado exitosamente desde archivo local.');
-                event.target.value = '';
-            },
-            error: (err) => {
-                console.error(err);
-                alert('Error al procesar el archivo CSV.');
-                event.target.value = '';
-            }
-        });
-    },
     
-    loadCSV(force = false) {
-        if (!force && this.data && this.data.length > 0) {
-            this.renderTable();
-            if (typeof pos !== 'undefined') pos.renderProducts();
-            return;
-        }
-        
-        const filesToTry = ['inventario_limpio.csv', 'inventario_limpio', 'inventariobien.csv', 'inventariobien', 'inventario.csv', 'inventario.csv.csv', 'inventario a&e.csv', 'inventario%20a%26e.csv'];
+    loadCSV() {
+        const t = new Date().getTime(); const filesToTry = ['inventario_limpio.csv?t='+t, 'inventario_limpio?t='+t, 'inventariobien.csv?t='+t, 'inventariobien?t='+t, 'inventario.csv?t='+t, 'inventario.csv.csv?t='+t, 'inventario a&e.csv?t='+t, 'inventario%20a%26e.csv?t='+t];
         let currentIndex = 0;
 
         const tryNextFile = () => {
             if (currentIndex >= filesToTry.length) {
                 console.error('No se pudo cargar el inventario.');
+                alert('Error al cargar el inventario. Asegurese de que el archivo CSV este subido a GitHub.');
                 return;
             }
 
@@ -1001,7 +926,35 @@ const inventory = {
                 header: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                    this.processCSVData(results);
+                    this.data = results.data.map(row => {
+                        const cleanRow = {};
+                        for (let key in row) {
+                            cleanRow[key.trim().toLowerCase()] = row[key].trim();
+                        }
+                        
+                        const item = {
+                            CODIGO: cleanRow['codigo'] || '',
+                            DESCRIPCION: cleanRow['descripcion'] || '',
+                            MARCA: cleanRow['marca'] || '',
+                            CONTENIDO: cleanRow['contenido'] || '',
+                            'UNIDADES POR CAJA': cleanRow['unidades_por_caja'] || cleanRow['unidades por caja'] || '',
+                            'PRECIO POR CAJA': cleanRow['precio_caja'] || cleanRow['precio por caja'] || '',
+                            'STOCK CAJA': cleanRow['stock'] || cleanRow['stock caja'] || '',
+                            AROMAS: cleanRow['aromas'] || ''
+                        };
+
+                        if (!item['CODIGO']) item['CODIGO'] = 'GEN-' + Math.random().toString(36).substr(2, 9);
+                        if (item['PRECIO POR CAJA']) {
+                            let priceStr = item['PRECIO POR CAJA'].replace('$', '').replace(/\./g, '').trim();
+                            item['PRICE_NUM'] = parseInt(priceStr) || 0;
+                        } else {
+                            item['PRICE_NUM'] = 0;
+                        }
+                        return item;
+                    });
+                    localStorage.setItem('pos_inventory', JSON.stringify(this.data));
+                    this.renderTable();
+                    if (typeof pos !== 'undefined') pos.renderProducts();
                 },
                 error: (err) => {
                     console.log('Fallo al cargar', currentFile, 'intentando el siguiente...');
@@ -1014,127 +967,54 @@ const inventory = {
         tryNextFile();
     },
 
-    renderTable() {
-        const list = document.getElementById('inv-product-list');
-        if (!list) return;
 
-        list.innerHTML = '';
+    renderTable() {
+        const thead = document.getElementById('inv-table-head');
+        const tbody = document.getElementById('inv-table-body');
+        
+        if (!thead || !tbody) return;
+
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+
         if (this.data.length === 0) return;
 
-        // Add Header Row
-        const headerRow = document.createElement('div');
-        headerRow.style.cssText = "display: grid; grid-template-columns: 80px 100px 2fr 1fr 1fr 1fr 1fr 50px; gap: 10px; font-weight: bold; background: #eee; padding: 10px; border-radius: 4px; margin-bottom: 10px;";
-        headerRow.innerHTML = `
-            <div>IMAGEN</div>
-            <div>CODIGO</div>
-            <div>DESCRIPCION</div>
-            <div>MARCA</div>
-            <div>UNIDADES X CAJA</div>
-            <div>PRECIO CAJA</div>
-            <div>STOCK CAJA</div>
-            <div>DEL</div>
-        `;
-        list.appendChild(headerRow);
-
-        let count = 0;
-        this.data.forEach(item => {
-            try {
-                if (!item.DESCRIPCION) return;
-
-                const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
-                const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
-                const stockVal = parseFloat(item['STOCK CAJA']) || 0;
-                const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
-                const priceNum = item.PRICE_NUM || 0;
-
-                const row = document.createElement('div');
-                row.className = 'inv-list-row';
-                row.style.cssText = "display: grid; grid-template-columns: 80px 100px 2fr 1fr 1fr 1fr 1fr 50px; gap: 10px; padding: 10px; border-bottom: 1px solid #ddd; align-items: center;";
-                
-                row.innerHTML = `
-                    <div><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></div>
-                    <div>${item.CODIGO || ''}</div>
-                    <div style="font-weight: 500;">${item.DESCRIPCION}</div>
-                    <div>${item.MARCA || ''}</div>
-                    <div>${item['UNIDADES POR CAJA'] || ''}</div>
-                    <div>$${priceNum.toLocaleString('es-CL')}</div>
-                    <div style="${stockStyle}">${Math.floor(stockVal)}</div>
-                    <div>
-                        <button class="btn-secondary ripple" style="background: #e53935; color: white; padding: 4px; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;" onclick="inventory.removeProduct('${item.CODIGO}')" title="Eliminar Producto">
-                            <span class="material-icons-outlined" style="font-size: 18px;">delete</span>
-                        </button>
-                    </div>
-                `;
-                list.appendChild(row);
-                count++;
-            } catch (e) {
-                console.error(e);
-            }
+        // Headers
+        const headers = ['IMAGEN', 'CODIGO', 'DESCRIPCION', 'MARCA', 'UNIDADES POR CAJA', 'PRECIO POR CAJA', 'STOCK CAJA'];
+        headers.forEach(h => {
+            const th = document.createElement('th');
+            th.innerText = h;
+            thead.appendChild(th);
         });
 
-        // Debug visual
-        const searchInput = document.getElementById('inv-search');
-        if (searchInput) {
-            searchInput.placeholder = `Se cargaron ${count} productos...`;
-        }
+        // Rows
+        this.data.forEach(item => {
+            const cleanDesc = item.DESCRIPCION.trim().toLowerCase().replace(/\s+/g, ' ');
+            const imgUrl = imageMap[cleanDesc] || 'logo.jpg.jpeg';
+            const stockVal = parseFloat(item['STOCK CAJA']) || 0;
+            const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></td>
+                <td>${item.CODIGO}</td>
+                <td>${item.DESCRIPCION}</td>
+                <td>${item.MARCA}</td>
+                <td>${item['UNIDADES POR CAJA']}</td>
+                <td>$${item.PRICE_NUM.toLocaleString('es-CL')}</td>
+                <td style="${stockStyle}">${Math.floor(stockVal)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
     },
 
     filterTable() {
         const term = document.getElementById('inv-search').value.toLowerCase();
-        const rows = document.querySelectorAll('.inv-list-row');
+        const rows = document.querySelectorAll('#inv-table-body tr');
         
         rows.forEach(row => {
             const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(term) ? 'grid' : 'none';
+            row.style.display = text.includes(term) ? '' : 'none';
         });
-    },
-
-    addProduct() {
-        const codigo = document.getElementById('new-prod-codigo').value || ('GEN-' + Math.random().toString(36).substr(2, 9));
-        const descripcion = document.getElementById('new-prod-desc').value;
-        const marca = document.getElementById('new-prod-marca').value;
-        const unidades = document.getElementById('new-prod-unidades').value;
-        const precio = document.getElementById('new-prod-precio').value;
-        const stock = document.getElementById('new-prod-stock').value;
-
-        if (!descripcion) {
-            alert("La descripción es obligatoria.");
-            return;
-        }
-
-        const newItem = {
-            CODIGO: codigo,
-            DESCRIPCION: descripcion,
-            MARCA: marca,
-            'UNIDADES POR CAJA': unidades,
-            PRICE_NUM: parseInt(precio) || 0,
-            'STOCK CAJA': stock || '0',
-            AROMAS: ''
-        };
-
-        this.data.push(newItem);
-        localStorage.setItem('pos_inventory', JSON.stringify(this.data));
-        this.renderTable();
-        if (typeof pos !== 'undefined') pos.renderProducts();
-        
-        // Hide modal and clear fields
-        document.getElementById('add-product-modal').style.display = 'none';
-        document.getElementById('new-prod-codigo').value = '';
-        document.getElementById('new-prod-desc').value = '';
-        document.getElementById('new-prod-marca').value = '';
-        document.getElementById('new-prod-unidades').value = '';
-        document.getElementById('new-prod-precio').value = '';
-        document.getElementById('new-prod-stock').value = '';
-    },
-
-    removeProduct(codigo) {
-        if (!codigo) return;
-        if (confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-            this.data = this.data.filter(item => item.CODIGO !== codigo);
-            localStorage.setItem('pos_inventory', JSON.stringify(this.data));
-            this.renderTable();
-            if (typeof pos !== 'undefined') pos.renderProducts();
-        }
     }
 };
 
@@ -1273,20 +1153,6 @@ const pos = {
 
         // Save to reports
         reports.addSale(sale);
-
-        // Deduct from inventory
-        this.cart.forEach(cartItem => {
-            const invItem = inventory.data.find(i => (i.CODIGO && i.CODIGO === cartItem.codigo) || (i.codigo && i.codigo === cartItem.codigo));
-            if (invItem) {
-                let stock = parseFloat(invItem['STOCK CAJA'] || invItem['stock'] || 0) || 0;
-                stock -= cartItem.qty;
-                invItem['STOCK CAJA'] = stock.toString();
-                if (invItem['stock']) invItem['stock'] = stock.toString();
-            }
-        });
-        localStorage.setItem('pos_inventory', JSON.stringify(inventory.data));
-        inventory.renderTable();
-        this.renderProducts();
 
         // Clear cart
         this.cart = [];
@@ -1489,12 +1355,7 @@ const app = {
             reports.updateDashboard();
         }
         if (this.state.targetModule === 'logistica' || this.state.targetModule === 'pos') {
-            if (inventory.data && inventory.data.length > 0) {
-                inventory.renderTable();
-                if (typeof pos !== 'undefined') pos.renderProducts();
-            } else {
-                inventory.loadCSV(); // load data initially
-            }
+            inventory.loadCSV(); // load/refresh data
         }
     },
 
