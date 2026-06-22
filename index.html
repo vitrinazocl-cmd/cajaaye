@@ -815,11 +815,8 @@ button:active {
                                 <span class="material-icons-outlined">search</span>
                                 <input type="text" id="inv-search" placeholder="Buscar producto en bodega..." onkeyup="inventory.filterTable()">
                             </div>
-                            <div class="table-responsive" style="min-height: 500px; width: 100%; overflow-y: auto; display: block;">
-                                <table class="data-table" id="inventory-table" style="width: 100%; visibility: visible;">
-                                    <thead id="inv-table-head"></thead>
-                                    <tbody id="inv-table-body"></tbody>
-                                </table>
+                            <div id="inv-product-list" style="display: flex; flex-direction: column; width: 100%; min-height: 500px; background: white; padding: 10px; overflow-y: auto;">
+                                <!-- Products injected by JS -->
                             </div>
                         </div>
                     </div>
@@ -996,27 +993,27 @@ const inventory = {
     },
 
     renderTable() {
-        const thead = document.getElementById('inv-table-head');
-        const tbody = document.getElementById('inv-table-body');
-        
-        if (!thead || !tbody) return;
+        const list = document.getElementById('inv-product-list');
+        if (!list) return;
 
-        thead.innerHTML = '';
-        tbody.innerHTML = '';
-
+        list.innerHTML = '';
         if (this.data.length === 0) return;
 
-        // Headers
-        const headers = ['IMAGEN', 'CODIGO', 'DESCRIPCION', 'MARCA', 'UNIDADES POR CAJA', 'PRECIO POR CAJA', 'STOCK CAJA'];
-        headers.forEach(h => {
-            const th = document.createElement('th');
-            th.innerText = h;
-            thead.appendChild(th);
-        });
+        // Add Header Row
+        const headerRow = document.createElement('div');
+        headerRow.style.cssText = "display: grid; grid-template-columns: 80px 100px 2fr 1fr 1fr 1fr 1fr; gap: 10px; font-weight: bold; background: #eee; padding: 10px; border-radius: 4px; margin-bottom: 10px;";
+        headerRow.innerHTML = `
+            <div>IMAGEN</div>
+            <div>CODIGO</div>
+            <div>DESCRIPCION</div>
+            <div>MARCA</div>
+            <div>UNIDADES X CAJA</div>
+            <div>PRECIO CAJA</div>
+            <div>STOCK CAJA</div>
+        `;
+        list.appendChild(headerRow);
 
-        // Rows
         let count = 0;
-        let errors = 0;
         this.data.forEach(item => {
             try {
                 if (!item.DESCRIPCION) return;
@@ -1027,41 +1024,40 @@ const inventory = {
                 const stockStyle = stockVal <= 5 ? 'color: red; font-weight: bold;' : '';
                 const priceNum = item.PRICE_NUM || 0;
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></td>
-                    <td>${item.CODIGO || ''}</td>
-                    <td>${item.DESCRIPCION}</td>
-                    <td>${item.MARCA || ''}</td>
-                    <td>${item['UNIDADES POR CAJA'] || ''}</td>
-                    <td>$${priceNum.toLocaleString('es-CL')}</td>
-                    <td style="${stockStyle}">${Math.floor(stockVal)}</td>
+                const row = document.createElement('div');
+                row.className = 'inv-list-row';
+                row.style.cssText = "display: grid; grid-template-columns: 80px 100px 2fr 1fr 1fr 1fr 1fr; gap: 10px; padding: 10px; border-bottom: 1px solid #ddd; align-items: center;";
+                
+                row.innerHTML = `
+                    <div><img src="${imgUrl}" style="width:50px; height:50px; object-fit:contain; border-radius:4px;"></div>
+                    <div>${item.CODIGO || ''}</div>
+                    <div style="font-weight: 500;">${item.DESCRIPCION}</div>
+                    <div>${item.MARCA || ''}</div>
+                    <div>${item['UNIDADES POR CAJA'] || ''}</div>
+                    <div>$${priceNum.toLocaleString('es-CL')}</div>
+                    <div style="${stockStyle}">${Math.floor(stockVal)}</div>
                 `;
-                tbody.appendChild(tr);
+                list.appendChild(row);
                 count++;
             } catch (e) {
-                errors++;
                 console.error(e);
-                const errTr = document.createElement('tr');
-                errTr.innerHTML = `<td colspan="7" style="color:red;">Error rendering item: ${e.message}</td>`;
-                tbody.appendChild(errTr);
             }
         });
 
         // Debug visual
         const searchInput = document.getElementById('inv-search');
         if (searchInput) {
-            searchInput.placeholder = `Se cargaron ${count} productos. Errores: ${errors}`;
+            searchInput.placeholder = `Se cargaron ${count} productos...`;
         }
     },
 
     filterTable() {
         const term = document.getElementById('inv-search').value.toLowerCase();
-        const rows = document.querySelectorAll('#inv-table-body tr');
+        const rows = document.querySelectorAll('.inv-list-row');
         
         rows.forEach(row => {
             const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(term) ? '' : 'none';
+            row.style.display = text.includes(term) ? 'grid' : 'none';
         });
     }
 };
