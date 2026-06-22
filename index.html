@@ -694,6 +694,14 @@ button:active {
                     
                     <!-- MODULE: POS (Caja Registradora) -->
                     <div id="module-pos" class="module">
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 20px; margin-bottom: 20px; border-radius: var(--md-sys-shape-medium);" class="shadow-1">
+                            <div>
+                                <h3 style="margin: 0; color: #333; font-size: 1.2rem;">Vendedor: <span id="pos-header-seller" style="color: var(--md-sys-color-primary); font-weight: bold;"></span></h3>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; color: #333; font-size: 1.2rem;">Ventas de Hoy: <span id="pos-header-daily-sales" style="color: var(--md-sys-color-primary); font-weight: bold;">$0</span></h3>
+                            </div>
+                        </div>
                         <div class="pos-layout">
                             <div class="pos-products card shadow-1">
                                 <h3>Productos</h3>
@@ -1145,6 +1153,18 @@ const inventory = {
 const pos = {
     cart: [],
     
+    updateHeader() {
+        if (!document.getElementById('pos-header-seller')) return;
+        document.getElementById('pos-header-seller').innerText = app.state.user ? app.state.user.username : '';
+        
+        const todayStr = new Date().toISOString().split('T')[0];
+        const todayTotal = reports.sales
+            .filter(s => s.date && s.date.startsWith(todayStr))
+            .reduce((sum, sale) => sum + sale.total, 0);
+            
+        document.getElementById('pos-header-daily-sales').innerText = `$${todayTotal.toLocaleString('es-CL')}`;
+    },
+
     renderProducts() {
         const list = document.getElementById('pos-product-list');
         if (!list) return;
@@ -1291,6 +1311,7 @@ const pos = {
         // Clear cart
         this.cart = [];
         this.renderCart();
+        this.updateHeader();
 
         alert(`Venta completada exitosamente. Total: $${total.toLocaleString('es-CL')}`);
     }
@@ -1487,6 +1508,9 @@ const app = {
         // Trigger module specific actions
         if (this.state.targetModule === 'ventas') {
             reports.updateDashboard();
+        }
+        if (this.state.targetModule === 'pos') {
+            pos.updateHeader();
         }
         if (this.state.targetModule === 'logistica' || this.state.targetModule === 'pos') {
             if (inventory.data && inventory.data.length > 0) {
